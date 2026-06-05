@@ -19,7 +19,7 @@
 
 1. `public-site` 폴더의 내용만 `newskool4d.github.io` 저장소 루트에 업로드합니다.
 2. GitHub 저장소의 `Settings > Pages`에서 Branch를 `main` 루트로 지정합니다.
-3. 배포 후 `https://newskool4d.github.io/`에 접속합니다.
+3. 배포 후 `https://newskool4d-sketch.github.io/newskool4d.github.io/`에 접속합니다.
 
 전체 개발 폴더를 그대로 업로드하지 마세요. `business.html`, `private-local-map.html`, 업무용 CSV, 민감정보 파일은 공개 저장소에 포함하지 않습니다.
 
@@ -28,10 +28,10 @@
 카카오 Developers에서 Web 플랫폼 사이트 도메인에 아래 주소를 등록합니다.
 
 ```text
-https://newskool4d.github.io
+https://newskool4d-sketch.github.io
 ```
 
-지도 화면에서 사용하는 키는 Kakao Maps JavaScript 키입니다. JavaScript 키는 브라우저에서 보일 수 있으므로, 공개 저장소에는 가능하면 하드코딩하지 않고 카카오 Developers에서 허용 도메인을 제한해 운영합니다.
+지도 화면에서 사용하는 키는 Kakao Maps JavaScript 키입니다. JavaScript 키는 브라우저에서 보일 수 있으므로, 공개 저장소에는 가능하면 하드코딩하지 않고 카카오 Developers에서 Web 플랫폼 사이트 도메인을 위 주소로 제한해 운영합니다.
 
 ## 로컬 비공개 앱
 
