@@ -240,7 +240,7 @@ function injectSharedGNB(activeTab) {
     <div class="key-modal-content" data-status-host>
       <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 12px; color: #fff;">🔑 카카오 API 키 설정</h3>
       <p style="font-size: 13.5px; color: var(--text-sub); line-height: 1.6; margin-bottom: 20px;">
-        카카오 Developers의 [내 애플리케이션] &gt; [앱 키]에서 발급받은 <strong>JavaScript 키</strong>를 입력해주세요. 이 키는 브라우저 localStorage에 저장됩니다. 운영 전 카카오 콘솔에서 허용 도메인을 localhost 또는 실제 배포 도메인으로 제한해 주세요.
+        카카오 Developers의 [내 애플리케이션] &gt; [앱 키]에서 발급받은 <strong>JavaScript 키</strong>를 입력해주세요. 이 키는 브라우저 localStorage에 저장됩니다. 운영 전 카카오 콘솔 Web 플랫폼 사이트 도메인에 <strong>https://newskool4d-sketch.github.io</strong>를 등록해 주세요.
       </p>
       <div class="form-group" style="margin-bottom: 24px;">
         <label for="modal-key-input">JavaScript 키 입력</label>
@@ -326,7 +326,7 @@ function loadKakaoSDK(callback) {
   if (!apiKey) {
     createLoaderCover(
       "🔑 카카오 JavaScript 키 등록 필요",
-        "newskool4d.github.io 인천교육 공개지도를 실행하려면 카카오 Developers에서 발급한 JavaScript 키 등록이 필요합니다. 이 키는 브라우저 localStorage에 저장되므로, 카카오 콘솔에서 허용 도메인을 localhost 또는 https://newskool4d.github.io 로 제한한 뒤 입력해주세요."
+        "인천교육 공개지도를 실행하려면 카카오 Developers에서 발급한 JavaScript 키 등록이 필요합니다. 이 키는 브라우저 localStorage에 저장됩니다. 카카오 콘솔 Web 플랫폼 사이트 도메인에 https://newskool4d-sketch.github.io 를 등록한 뒤 입력해 주세요."
     );
     return;
   }
@@ -360,7 +360,7 @@ function loadKakaoSDK(callback) {
   script.onerror = () => {
     createLoaderCover(
       "❌ SDK 로드 실패",
-      "카카오 맵 라이브러리를 로드하는 도중 에러가 발생했습니다. JavaScript 키가 정확한지, 카카오 콘솔의 허용 도메인이 localhost 또는 현재 접속 도메인으로 제한 등록되어 있는지 확인해 주세요."
+      "카카오 맵 라이브러리를 로드하는 도중 에러가 발생했습니다. JavaScript 키가 정확한지, 카카오 콘솔 Web 플랫폼 사이트 도메인에 https://newskool4d-sketch.github.io 가 등록되어 있는지 확인해 주세요."
     );
   };
 
