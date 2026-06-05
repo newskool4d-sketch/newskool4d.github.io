@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="newskool4d.github.io 인천교육 공개지도. 관내학교 디렉토리와 체험교육기관 안내를 제공합니다.">
+  <link rel="icon" href="data:,">
+  <title>newskool4d.github.io - 인천교육 통합지도</title>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
+  <link rel="stylesheet" href="shared.css">
+  <style>
+    body {
+      min-height: 100vh;
+      height: auto;
+      overflow: auto;
+      display: block;
+      background:
+        linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px),
+        linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px),
+        linear-gradient(135deg, rgba(52, 211, 153, 0.08), transparent 34%, rgba(96, 165, 250, 0.08) 68%, transparent),
+        #181716;
+      background-size: 44px 44px, 44px 44px, auto, auto;
+    }
+
+    .site-shell {
+      width: min(1180px, calc(100% - 40px));
+      margin: 0 auto;
+      padding: 34px 0 42px;
+    }
+
+    .site-header {
+      min-height: 62px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      margin-bottom: 28px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .brand-mark {
+      display: grid;
+      place-items: center;
+      width: 44px;
+      height: 44px;
+      border: 1px solid rgba(52, 211, 153, 0.42);
+      border-radius: 8px;
+      background: rgba(15, 23, 42, 0.74);
+      color: var(--teal-light);
+    }
+
+    .brand small {
+      display: block;
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 800;
+      line-height: 1.2;
+    }
+
+    .brand strong {
+      display: block;
+      color: #fff;
+      font-size: 20px;
+      line-height: 1.2;
+    }
+
+    .site-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .text-link {
+      min-height: 40px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 13px;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      color: var(--text-main);
+      background: rgba(255, 255, 255, 0.06);
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 0.86fr) minmax(420px, 1.14fr);
+      gap: 24px;
+      align-items: stretch;
+    }
+
+    .hero-copy {
+      min-height: 560px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 18px 0;
+    }
+
+    .eyebrow {
+      width: fit-content;
+      margin-bottom: 18px;
+      padding: 7px 10px;
+      border: 1px solid rgba(246, 196, 83, 0.36);
+      border-radius: 8px;
+      background: rgba(246, 196, 83, 0.08);
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    h1 {
+      max-width: 720px;
+      margin: 0;
+      color: #fff;
+      font-size: 72px;
+      line-height: 1.02;
+      letter-spacing: 0;
+    }
+
+    .lead {
+      max-width: 560px;
+      margin-top: 18px;
+      color: var(--text-sub);
+      font-size: 17px;
+      line-height: 1.65;
+      word-break: keep-all;
+    }
+
+    .quick-launch {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 24px;
+    }
+
+    .launch-tile {
+      min-height: 102px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 18px;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      background: rgba(36, 33, 31, 0.84);
+      color: var(--text-main);
+      text-decoration: none;
+      transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+    }
+
+    .launch-tile:hover {
+      transform: translateY(-2px);
+      border-color: rgba(52, 211, 153, 0.58);
+      background: rgba(45, 43, 39, 0.94);
+    }
+
+    .launch-tile strong {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      color: #fff;
+      font-size: 17px;
+      line-height: 1.35;
+    }
+
+    .launch-tile span {
+      color: var(--text-sub);
+      font-size: 13px;
+      line-height: 1.5;
+      word-break: keep-all;
+    }
+
+    .map-stage {
+      position: relative;
+      min-height: 560px;
+      overflow: hidden;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      background: #201f1d;
+      box-shadow: 0 24px 70px rgba(0, 0, 0, 0.34);
+    }
+
+    .map-stage::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(120deg, transparent 12%, rgba(52, 211, 153, 0.12) 12% 13%, transparent 13% 58%, rgba(96, 165, 250, 0.12) 58% 59%, transparent 59%),
+        linear-gradient(32deg, rgba(255,255,255,0.05) 0 1px, transparent 1px 60px),
+        linear-gradient(118deg, rgba(255,255,255,0.04) 0 1px, transparent 1px 76px),
+        #24211f;
+      background-size: auto, 72px 72px, 82px 82px, auto;
+    }
+
+    .map-water {
+      position: absolute;
+      right: -9%;
+      top: -5%;
+      width: 54%;
+      height: 112%;
+      clip-path: polygon(26% 0, 100% 0, 100% 100%, 10% 100%, 34% 72%, 18% 44%);
+      background: linear-gradient(180deg, rgba(96, 165, 250, 0.24), rgba(14, 165, 233, 0.08));
+      border-left: 1px solid rgba(96, 165, 250, 0.22);
+    }
+
+    .route-line {
+      position: absolute;
+      left: 10%;
+      top: 45%;
+      width: 68%;
+      height: 2px;
+      background: linear-gradient(90deg, var(--accent), var(--teal-light), var(--blue-light));
+      transform: rotate(-18deg);
+      box-shadow: 0 0 18px rgba(52, 211, 153, 0.3);
+    }
+
+    .pin {
+      position: absolute;
+      display: grid;
+      place-items: center;
+      width: 34px;
+      height: 34px;
+      border: 2px solid rgba(255,255,255,0.72);
+      border-radius: 50% 50% 50% 8px;
+      background: var(--teal-light);
+      color: #0f172a;
+      font-size: 13px;
+      font-weight: 900;
+      transform: rotate(-45deg);
+      box-shadow: 0 14px 24px rgba(0,0,0,0.32);
+    }
+
+    .pin span {
+      transform: rotate(45deg);
+    }
+
+    .pin.school { left: 17%; top: 25%; background: var(--accent); }
+    .pin.infra { left: 52%; top: 34%; background: var(--blue-light); }
+    .pin.work { left: 38%; top: 67%; background: var(--teal-light); }
+    .pin.private { left: 70%; top: 57%; background: #f87171; }
+
+    .map-panel {
+      position: absolute;
+      left: 24px;
+      right: 24px;
+      bottom: 24px;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .metric {
+      min-height: 94px;
+      padding: 15px;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      background: rgba(15, 23, 42, 0.76);
+      backdrop-filter: blur(10px);
+    }
+
+    .metric strong {
+      display: block;
+      color: #fff;
+      font-size: 24px;
+      line-height: 1.2;
+    }
+
+    .metric span {
+      display: block;
+      margin-top: 8px;
+      color: var(--text-sub);
+      font-size: 12px;
+      line-height: 1.4;
+      word-break: keep-all;
+    }
+
+    .map-label {
+      position: absolute;
+      top: 24px;
+      left: 24px;
+      max-width: 340px;
+      padding: 16px;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      background: rgba(24, 23, 22, 0.86);
+      backdrop-filter: blur(12px);
+    }
+
+    .map-label strong {
+      display: block;
+      color: #fff;
+      font-size: 18px;
+      margin-bottom: 7px;
+    }
+
+    .map-label span {
+      color: var(--text-sub);
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    .deploy-strip {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 14px;
+      margin-top: 24px;
+    }
+
+    .deploy-note {
+      min-height: 112px;
+      padding: 18px;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      background: rgba(15, 23, 42, 0.44);
+    }
+
+    .deploy-note strong {
+      display: block;
+      color: #fff;
+      font-size: 15px;
+      margin-bottom: 8px;
+    }
+
+    .deploy-note span {
+      display: block;
+      color: var(--text-sub);
+      font-size: 13px;
+      line-height: 1.6;
+      word-break: keep-all;
+    }
+
+    @media (max-width: 980px) {
+      .site-shell {
+        width: min(100% - 28px, 760px);
+        padding-top: 22px;
+      }
+
+      .site-header,
+      .hero-grid,
+      .deploy-strip {
+        grid-template-columns: 1fr;
+      }
+
+      .site-header {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .site-actions {
+        justify-content: stretch;
+      }
+
+      .text-link {
+        flex: 1;
+        justify-content: center;
+      }
+
+      .hero-copy,
+      .map-stage {
+        min-height: auto;
+      }
+
+      .hero-copy {
+        padding: 12px 0 0;
+      }
+
+      .map-stage {
+        height: 560px;
+      }
+
+      h1 {
+        font-size: 56px;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .quick-launch {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .map-panel {
+        grid-template-columns: 1fr;
+      }
+
+      .launch-tile {
+        min-height: 154px;
+        padding: 14px;
+      }
+
+      .launch-tile strong {
+        align-items: flex-start;
+        font-size: 14px;
+      }
+
+      .launch-tile span {
+        font-size: 12px;
+        overflow-wrap: anywhere;
+        word-break: normal;
+      }
+
+      .map-stage {
+        height: 680px;
+      }
+
+      .map-label {
+        left: 14px;
+        right: 14px;
+        top: 14px;
+      }
+
+      .map-panel {
+        left: 14px;
+        right: 14px;
+        bottom: 14px;
+      }
+
+      h1 {
+        font-size: 40px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="site-shell">
+    <header class="site-header">
+      <a class="brand" href="index.html" aria-label="newskool4d.github.io 홈">
+        <span class="brand-mark" aria-hidden="true">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+            <path d="M9 18L3 21V6L9 3L15 6L21 3V18L15 21L9 18Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+            <path d="M9 3V18M15 6V21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </span>
+        <span>
+          <small>NEWSKOOL4D.GITHUB.IO</small>
+          <strong>인천교육 통합지도</strong>
+        </span>
+      </a>
+      <div class="site-actions">
+        <a class="text-link" href="schools.html">
+          학교 지도 열기
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M5 12H19M13 6L19 12L13 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </a>
+        <a class="text-link" href="README.md">배포 안내</a>
+      </div>
+    </header>
+
+    <section class="hero-grid" aria-label="지도 사이트 홈">
+      <div class="hero-copy">
+        <div>
+          <div class="eyebrow">GitHub Pages 지도 사이트</div>
+          <h1>인천교육 공개 지도를 한 곳에서 확인합니다.</h1>
+          <p class="lead">
+            관내학교 디렉토리와 체험교육기관 안내처럼 공개 가능한 정보만
+            newskool4d.github.io 첫 화면에서 바로 선택해 사용할 수 있도록 구성했습니다.
+          </p>
+        </div>
+
+        <nav class="quick-launch" aria-label="지도 기능 바로가기">
+          <a class="launch-tile" href="schools.html">
+            <strong>
+              관내 학교 디렉토리
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M5 12H19M13 6L19 12L13 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </strong>
+            <span>본청과 5개 교육지원청 관할 구조 기준으로 학교 목록과 위치를 확인합니다.</span>
+          </a>
+          <a class="launch-tile" href="infrastructure.html">
+            <strong>
+              체험교육 기관 안내
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M5 12H19M13 6L19 12L13 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </strong>
+            <span>직속기관, 도서관, 군청·공단·사설 체험처를 권역과 유형으로 탐색합니다.</span>
+          </a>
+        </nav>
+      </div>
+
+      <aside class="map-stage" aria-label="지도 사이트 미리보기">
+        <div class="map-water" aria-hidden="true"></div>
+        <div class="route-line" aria-hidden="true"></div>
+        <div class="pin school" aria-hidden="true"><span>학</span></div>
+        <div class="pin infra" aria-hidden="true"><span>체</span></div>
+        <div class="map-label">
+          <strong>공개 공유용 지도</strong>
+          <span>학교와 체험교육기관처럼 공개 가능한 기본 정보만 제공합니다. 업무용 CSV와 민감정보 매칭은 로컬 비공개 앱에서 분리해 사용합니다.</span>
+        </div>
+        <div class="map-panel">
+          <div class="metric">
+            <strong>2</strong>
+            <span>공개 지도 모듈</span>
+          </div>
+          <div class="metric">
+            <strong>6</strong>
+            <span>본청·교육지원청 관할 축</span>
+          </div>
+          <div class="metric">
+            <strong>1</strong>
+            <span>GitHub Pages 첫 화면</span>
+          </div>
+        </div>
+      </aside>
+    </section>
+
+    <section class="deploy-strip" aria-label="배포 및 API 안내">
+      <div class="deploy-note">
+        <strong>배포 주소</strong>
+        <span>저장소 이름을 newskool4d.github.io로 만들고 이 폴더의 파일을 루트에 올리면 https://newskool4d.github.io/에서 바로 열립니다.</span>
+      </div>
+      <div class="deploy-note">
+        <strong>카카오 도메인 등록</strong>
+        <span>카카오 Developers Web 플랫폼에 https://newskool4d.github.io를 허용 도메인으로 등록해야 지도 SDK가 정상 작동합니다.</span>
+      </div>
+      <div class="deploy-note">
+        <strong>비공개 앱 분리</strong>
+        <span>업무용 커스텀 디렉토리와 민감정보 매칭 도구는 공개 배포에 포함하지 않고 로컬에서만 실행합니다.</span>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
