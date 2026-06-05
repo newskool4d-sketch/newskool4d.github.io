@@ -1,0 +1,142 @@
+[
+  {
+    "id": "sch-103",
+    "office": "main",
+    "level": "high",
+    "name": "강화고등학교",
+    "address": "인천광역시 강화군 강화읍 고비고개로 52"
+  },
+  {
+    "id": "sch-104",
+    "office": "main",
+    "level": "alt",
+    "name": "강화 산마을고등학교",
+    "address": "인천광역시 강화군 양도면 중앙로787번길 40"
+  },
+  {
+    "id": "sch-203",
+    "office": "main",
+    "level": "high",
+    "name": "제물포고등학교",
+    "address": "인천광역시 중구 자유공원로 15"
+  },
+  {
+    "id": "sch-204",
+    "office": "main",
+    "level": "special",
+    "name": "인천예림학교",
+    "address": "인천광역시 미추홀구 경인로229번길 18"
+  },
+  {
+    "id": "sch-303",
+    "office": "main",
+    "level": "high",
+    "name": "부평고등학교",
+    "address": "인천광역시 부평구 안남로 81"
+  },
+  {
+    "id": "sch-304",
+    "office": "main",
+    "level": "special",
+    "name": "인천혜광학교",
+    "address": "인천광역시 부평구 수변로 57"
+  },
+  {
+    "id": "sch-403",
+    "office": "main",
+    "level": "high",
+    "name": "신송고등학교",
+    "address": "인천광역시 연수구 신송로 170"
+  },
+  {
+    "id": "sch-404",
+    "office": "main",
+    "level": "special",
+    "name": "인천미추홀학교",
+    "address": "인천광역시 남동구 남동대로215번길 81"
+  },
+  {
+    "id": "sch-503",
+    "office": "main",
+    "level": "high",
+    "name": "인천계양고등학교",
+    "address": "인천광역시 계양구 계산새로 118"
+  },
+  {
+    "id": "sch-504",
+    "office": "main",
+    "level": "special",
+    "name": "인천인혜학교",
+    "address": "인천광역시 계양구 다남로 165"
+  },
+  {
+    "id": "sch-101",
+    "office": "ganghwa",
+    "level": "elem",
+    "name": "강화초등학교",
+    "address": "인천광역시 강화군 강화읍 동문안길 26"
+  },
+  {
+    "id": "sch-102",
+    "office": "ganghwa",
+    "level": "mid",
+    "name": "강화중학교",
+    "address": "인천광역시 강화군 강화읍 충렬사로 29"
+  },
+  {
+    "id": "sch-201",
+    "office": "south",
+    "level": "elem",
+    "name": "인천신선초등학교",
+    "address": "인천광역시 중구 연안부두로128번길 34"
+  },
+  {
+    "id": "sch-202",
+    "office": "south",
+    "level": "mid",
+    "name": "용현중학교",
+    "address": "인천광역시 미추홀구 독배로 422"
+  },
+  {
+    "id": "sch-301",
+    "office": "north",
+    "level": "elem",
+    "name": "인천부평초등학교",
+    "address": "인천광역시 부평구 부평대로 179"
+  },
+  {
+    "id": "sch-302",
+    "office": "north",
+    "level": "mid",
+    "name": "부원중학교",
+    "address": "인천광역시 부평구 부평문화로 13"
+  },
+  {
+    "id": "sch-401",
+    "office": "east",
+    "level": "elem",
+    "name": "인천석천초등학교",
+    "address": "인천광역시 남동구 구월남로 164"
+  },
+  {
+    "id": "sch-402",
+    "office": "east",
+    "level": "mid",
+    "name": "인천정각중학교",
+    "address": "인천광역시 남동구 정각로 24"
+  },
+  {
+    "id": "sch-501",
+    "office": "west",
+    "level": "elem",
+    "name": "인천청라초등학교",
+    "address": "인천광역시 서구 청라라임로 105"
+  },
+  {
+    "id": "sch-502",
+    "office": "west",
+    "level": "mid",
+    "name": "인천초은중학교",
+    "address": "인천광역시 서구 청라라임로 121"
+  }
+]
