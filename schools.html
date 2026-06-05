@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" href="data:,">
+  <title>관내 학교 디렉토리 - 인천교육 통합지도</title>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
+  <link rel="stylesheet" href="shared.css">
+  <style>
+    .office-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .office-grid .btn-secondary.active {
+      border-color: var(--blue-light);
+      color: #fff;
+      background: rgba(96, 165, 250, 0.16);
+    }
+
+    .search-box-row {
+      display: flex;
+      gap: 8px;
+    }
+
+    .directory-card {
+      background: rgba(30, 41, 59, 0.42);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 15px;
+      margin-bottom: 10px;
+      cursor: pointer;
+      transition: border-color 0.2s ease, background 0.2s ease;
+    }
+
+    .directory-card:hover,
+    .directory-card.active {
+      background: rgba(30, 41, 59, 0.82);
+      border-color: var(--blue-light);
+    }
+
+    .directory-name {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 8px;
+      color: #fff;
+      font-size: 16px;
+      font-weight: 750;
+    }
+
+    .level-badge,
+    .office-badge {
+      display: inline-flex;
+      align-items: center;
+      white-space: nowrap;
+      border-radius: 6px;
+      padding: 4px 8px;
+      font-size: 11.5px;
+      font-weight: 750;
+    }
+
+    .level-badge {
+      color: #0f172a;
+      background: var(--blue-light);
+    }
+
+    .office-badge {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--border-color);
+    }
+
+    .directory-meta {
+      display: grid;
+      gap: 6px;
+      color: var(--text-sub);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .empty-state {
+      padding: 26px 16px;
+      text-align: center;
+      color: var(--text-sub);
+    }
+  </style>
+</head>
+<body>
+  <div class="app-main">
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <h2 class="sidebar-title">🏫 관내 학교 디렉토리</h2>
+        <p class="sidebar-subtitle">공개 공유용 학교 위치 안내입니다. 내부 배정 정보와 커스텀 데이터는 비공개 로컬 앱에서만 관리합니다.</p>
+        <div class="workflow-status">
+          <div class="workflow-status-chip ready">
+            <strong>공개</strong>
+            <span>읽기 전용</span>
+          </div>
+          <div class="workflow-status-chip" id="school-count-chip">
+            <strong>목록</strong>
+            <span id="school-count-chip-text">0개교</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="sidebar-content">
+        <div class="card">
+          <div class="card-title">
+            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 21h18M5 21V7l8-4 6 4v14M9 21v-6h6v6"/></svg>
+            관할 기관
+          </div>
+          <div class="office-grid" id="office-actions">
+            <button type="button" class="btn-secondary active" data-office="all">전체</button>
+            <button type="button" class="btn-secondary" data-office="main">본청</button>
+            <button type="button" class="btn-secondary" data-office="ganghwa">강화</button>
+            <button type="button" class="btn-secondary" data-office="south">남부</button>
+            <button type="button" class="btn-secondary" data-office="north">북부</button>
+            <button type="button" class="btn-secondary" data-office="east">동부</button>
+            <button type="button" class="btn-secondary" data-office="west">서부</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">
+            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h7"/></svg>
+            학교급 필터
+          </div>
+          <div class="filter-group" id="level-filters" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <label class="checkbox-container"><input type="checkbox" data-level="kinder" checked><span class="custom-checkbox"></span><span>유치원</span></label>
+            <label class="checkbox-container"><input type="checkbox" data-level="elem" checked><span class="custom-checkbox"></span><span>초등학교</span></label>
+            <label class="checkbox-container"><input type="checkbox" data-level="mid" checked><span class="custom-checkbox"></span><span>중학교</span></label>
+            <label class="checkbox-container"><input type="checkbox" data-level="high" checked><span class="custom-checkbox"></span><span>고등학교</span></label>
+            <label class="checkbox-container"><input type="checkbox" data-level="special" checked><span class="custom-checkbox"></span><span>특수학교</span></label>
+            <label class="checkbox-container"><input type="checkbox" data-level="alt" checked><span class="custom-checkbox"></span><span>대안학교</span></label>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">
+            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="m21 21-4.35-4.35M10.5 18a7.5 7.5 0 1 1 0-15 7.5 7.5 0 0 1 0 15Z"/></svg>
+            학교명·주소 검색
+          </div>
+          <div class="search-box-row">
+            <input type="search" id="school-query" placeholder="예: 부평고, 강화, 청라">
+            <button type="button" class="btn-secondary" id="clear-query-btn" style="width:auto;">초기화</button>
+          </div>
+        </div>
+
+        <div style="flex: 1; display: flex; flex-direction: column; min-height: 200px;">
+          <h3 style="font-size: 15px; font-weight: 700; color: #fff; margin-bottom: 8px; display: flex; justify-content: space-between;">
+            <span>🏫 학교 목록</span>
+            <span id="schools-count" style="color: var(--blue-light);">0개교</span>
+          </h3>
+          <div id="school-list-dom"></div>
+        </div>
+      </div>
+    </aside>
+
+    <div class="sidebar-resizer" id="sidebar-resizer"></div>
+
+    <main class="map-viewport">
+      <div class="map-toolbar">
+        <div>
+          <strong id="school-map-title">관내 학교 위치</strong>
+          <span id="school-map-summary">공개 디렉토리 기준</span>
+        </div>
+        <button type="button" class="btn-secondary" id="fit-schools-btn">전체 보기</button>
+      </div>
+      <div id="map"></div>
+    </main>
+  </div>
+
+  <script src="shared.js"></script>
+  <script>
+    const OFFICE_PRESETS = [
+      { code: "main", label: "본청", name: "인천광역시교육청 본청", lat: 37.4562, lng: 126.7052 },
+      { code: "ganghwa", label: "강화", name: "인천광역시강화교육지원청", lat: 37.7463, lng: 126.4880 },
+      { code: "south", label: "남부", name: "인천광역시남부교육지원청", lat: 37.4623, lng: 126.6548 },
+      { code: "north", label: "북부", name: "인천광역시북부교육지원청", lat: 37.5072, lng: 126.7224 },
+      { code: "east", label: "동부", name: "인천광역시동부교육지원청", lat: 37.4332, lng: 126.7212 },
+      { code: "west", label: "서부", name: "인천광역시서부교육지원청", lat: 37.5518, lng: 126.6775 }
+    ];
+
+    const FALLBACK_SCHOOLS = [
+      { id: "sch-103", office: "main", level: "high", name: "강화고등학교", address: "인천광역시 강화군 강화읍 고비고개로 52" },
+      { id: "sch-104", office: "main", level: "alt", name: "강화 산마을고등학교", address: "인천광역시 강화군 양도면 중앙로787번길 40" },
+      { id: "sch-203", office: "main", level: "high", name: "제물포고등학교", address: "인천광역시 중구 자유공원로 15" },
+      { id: "sch-204", office: "main", level: "special", name: "인천예림학교", address: "인천광역시 미추홀구 경인로229번길 18" },
+      { id: "sch-303", office: "main", level: "high", name: "부평고등학교", address: "인천광역시 부평구 안남로 81" },
+      { id: "sch-304", office: "main", level: "special", name: "인천혜광학교", address: "인천광역시 부평구 수변로 57" },
+      { id: "sch-403", office: "main", level: "high", name: "신송고등학교", address: "인천광역시 연수구 신송로 170" },
+      { id: "sch-404", office: "main", level: "special", name: "인천미추홀학교", address: "인천광역시 남동구 남동대로215번길 81" },
+      { id: "sch-503", office: "main", level: "high", name: "인천계양고등학교", address: "인천광역시 계양구 계산새로 118" },
+      { id: "sch-504", office: "main", level: "special", name: "인천인혜학교", address: "인천광역시 계양구 다남로 165" },
+      { id: "sch-101", office: "ganghwa", level: "elem", name: "강화초등학교", address: "인천광역시 강화군 강화읍 동문안길 26" },
+      { id: "sch-102", office: "ganghwa", level: "mid", name: "강화중학교", address: "인천광역시 강화군 강화읍 충렬사로 29" },
+      { id: "sch-201", office: "south", level: "elem", name: "인천신선초등학교", address: "인천광역시 중구 연안부두로128번길 34" },
+      { id: "sch-202", office: "south", level: "mid", name: "용현중학교", address: "인천광역시 미추홀구 독배로 422" },
+      { id: "sch-301", office: "north", level: "elem", name: "인천부평초등학교", address: "인천광역시 부평구 부평대로 179" },
+      { id: "sch-302", office: "north", level: "mid", name: "부원중학교", address: "인천광역시 부평구 부평문화로 13" },
+      { id: "sch-401", office: "east", level: "elem", name: "인천석천초등학교", address: "인천광역시 남동구 구월남로 164" },
+      { id: "sch-402", office: "east", level: "mid", name: "인천정각중학교", address: "인천광역시 남동구 정각로 24" },
+      { id: "sch-501", office: "west", level: "elem", name: "인천청라초등학교", address: "인천광역시 서구 청라라임로 105" },
+      { id: "sch-502", office: "west", level: "mid", name: "인천초은중학교", address: "인천광역시 서구 청라라임로 121" }
+    ];
+
+    const levelNames = {
+      kinder: "유치원",
+      elem: "초등학교",
+      mid: "중학교",
+      high: "고등학교",
+      special: "특수학교",
+      alt: "대안학교"
+    };
+
+    let schools = FALLBACK_SCHOOLS;
+    let selectedOffice = "all";
+    let mapInstance = null;
+    let activeOverlay = null;
+    const schoolMarkers = new Map();
+
+    window.addEventListener("DOMContentLoaded", async () => {
+      injectSharedGNB("schools");
+      initSidebarResizer();
+      bindEvents();
+      await loadSchools();
+      renderSchools();
+      loadKakaoSDK(initMap);
+    });
+
+    async function loadSchools() {
+      try {
+        const response = await fetch("data/schools.json", { cache: "no-store" });
+        if (!response.ok) throw new Error("schools.json load failed");
+        const loaded = await response.json();
+        if (!Array.isArray(loaded)) throw new Error("schools.json must be an array");
+        const valid = loaded.filter(isValidSchool);
+        schools = valid.length ? valid : FALLBACK_SCHOOLS;
+      } catch {
+        schools = FALLBACK_SCHOOLS;
+      }
+    }
+
+    function isValidSchool(item) {
+      return item && typeof item.id === "string" && typeof item.name === "string" &&
+        typeof item.address === "string" && typeof item.office === "string" &&
+        typeof item.level === "string" && levelNames[item.level];
+    }
+
+    function bindEvents() {
+      document.getElementById("office-actions").addEventListener("click", event => {
+        const button = event.target.closest("[data-office]");
+        if (!button) return;
+        selectedOffice = button.dataset.office;
+        document.querySelectorAll("[data-office]").forEach(item => {
+          item.classList.toggle("active", item === button);
+        });
+        renderSchools();
+        fitSchoolsView();
+      });
+
+      document.getElementById("level-filters").addEventListener("change", renderSchools);
+      document.getElementById("school-query").addEventListener("input", renderSchools);
+      document.getElementById("clear-query-btn").addEventListener("click", () => {
+        document.getElementById("school-query").value = "";
+        selectedOffice = "all";
+        document.querySelectorAll("[data-office]").forEach(item => {
+          item.classList.toggle("active", item.dataset.office === "all");
+        });
+        renderSchools();
+        fitSchoolsView();
+      });
+
+      document.getElementById("school-list-dom").addEventListener("click", event => {
+        const card = event.target.closest("[data-school-id]");
+        if (card) focusSchool(card.dataset.schoolId);
+      });
+
+      document.getElementById("fit-schools-btn").addEventListener("click", fitSchoolsView);
+    }
+
+    function activeLevels() {
+      return new Set(Array.from(document.querySelectorAll("[data-level]:checked")).map(input => input.dataset.level));
+    }
+
+    function filteredSchools() {
+      const query = document.getElementById("school-query").value.trim().toLowerCase();
+      const levels = activeLevels();
+      return schools.filter(school => {
+        const officeMatch = selectedOffice === "all" || school.office === selectedOffice;
+        const levelMatch = levels.has(school.level);
+        const queryMatch = !query || `${school.name} ${school.address}`.toLowerCase().includes(query);
+        return officeMatch && levelMatch && queryMatch;
+      });
+    }
+
+    function officeLabel(code) {
+      return OFFICE_PRESETS.find(office => office.code === code)?.label || "기타";
+    }
+
+    function renderSchools() {
+      const listDom = document.getElementById("school-list-dom");
+      const items = filteredSchools();
+      listDom.innerHTML = "";
+      document.getElementById("schools-count").textContent = `${items.length}개교`;
+      document.getElementById("school-count-chip-text").textContent = `${items.length}개교`;
+      document.getElementById("school-count-chip").classList.toggle("ready", items.length > 0);
+      document.getElementById("school-map-summary").textContent =
+        selectedOffice === "all" ? "전체 관할 기준" : `${officeLabel(selectedOffice)} 관할 기준`;
+
+      if (!items.length) {
+        listDom.innerHTML = `<div class="alert alert-warning empty-state">조건에 맞는 학교가 없습니다.</div>`;
+      } else {
+        items.forEach(school => listDom.appendChild(createSchoolCard(school)));
+      }
+
+      updateMarkerVisibility(items);
+    }
+
+    function createSchoolCard(school) {
+      const card = document.createElement("article");
+      card.className = "directory-card";
+      card.tabIndex = 0;
+      card.dataset.schoolId = school.id;
+      card.innerHTML = `
+        <div class="directory-name">
+          <span>${escapeHtml(school.name)}</span>
+          <span class="level-badge">${escapeHtml(levelNames[school.level] || school.level)}</span>
+        </div>
+        <div class="directory-meta">
+          <span class="office-badge">${escapeHtml(officeLabel(school.office))}</span>
+          <span>📍 ${escapeHtml(school.address)}</span>
+        </div>
+      `;
+      card.addEventListener("keydown", event => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          focusSchool(school.id);
+        }
+      });
+      return card;
+    }
+
+    function initMap() {
+      mapInstance = new kakao.maps.Map(document.getElementById("map"), {
+        center: new kakao.maps.LatLng(37.52, 126.58),
+        level: 8
+      });
+      applyStandardKakaoMapSettings(mapInstance);
+      initSidebarResizer(mapInstance);
+      createSchoolMarkers();
+    }
+
+    function createSchoolMarkers() {
+      const geocoder = new kakao.maps.services.Geocoder();
+      let pending = schools.length;
+      if (!pending) return;
+
+      schools.forEach(school => {
+        geocoder.addressSearch(school.address, (result, status) => {
+          if (status === kakao.maps.services.Status.OK && result[0]) {
+            const coords = new kakao.maps.LatLng(result[0].y, result[0].x);
+            const marker = new kakao.maps.Marker({ position: coords, map: mapInstance, title: school.name });
+            kakao.maps.event.addListener(marker, "click", () => focusSchool(school.id));
+            schoolMarkers.set(school.id, { school, coords, marker });
+          }
+
+          pending -= 1;
+          if (pending === 0) {
+            renderSchools();
+            fitSchoolsView();
+          }
+        });
+      });
+    }
+
+    function updateMarkerVisibility(items) {
+      if (!mapInstance) return;
+      const visibleIds = new Set(items.map(item => item.id));
+      schoolMarkers.forEach((item, id) => {
+        item.marker.setMap(visibleIds.has(id) ? mapInstance : null);
+      });
+    }
+
+    function focusSchool(schoolId) {
+      const item = schoolMarkers.get(schoolId);
+      const school = item?.school || schools.find(entry => entry.id === schoolId);
+      if (!school) return;
+
+      document.querySelectorAll(".directory-card").forEach(card => {
+        card.classList.toggle("active", card.dataset.schoolId === schoolId);
+      });
+
+      if (!item || !mapInstance) return;
+      mapInstance.panTo(item.coords);
+
+      if (activeOverlay) activeOverlay.setMap(null);
+      const popup = document.createElement("div");
+      popup.className = "map-popup";
+      popup.innerHTML = `
+        <div class="map-popup-header"><strong>${escapeHtml(school.name)}</strong></div>
+        <div class="map-popup-desc">${escapeHtml(officeLabel(school.office))} · ${escapeHtml(levelNames[school.level] || school.level)}</div>
+        <div class="map-popup-info">
+          <div class="map-popup-info-item">📍 <span>${escapeHtml(school.address)}</span></div>
+        </div>
+      `;
+      activeOverlay = new kakao.maps.CustomOverlay({
+        content: popup,
+        position: item.coords,
+        xAnchor: 0.5,
+        yAnchor: 1.15,
+        clickable: true
+      });
+      activeOverlay.setMap(mapInstance);
+    }
+
+    function fitSchoolsView() {
+      if (!mapInstance) return;
+      const visibleIds = new Set(filteredSchools().map(item => item.id));
+      const coords = Array.from(schoolMarkers.entries())
+        .filter(([id]) => visibleIds.has(id))
+        .map(([, item]) => item.coords);
+      fitKakaoMapToCoords(mapInstance, coords, new kakao.maps.LatLng(37.52, 126.58), 8);
+    }
+  </script>
+</body>
+</html>
