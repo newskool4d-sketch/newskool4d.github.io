@@ -341,13 +341,37 @@ function loadKakaoSDK(callback) {
   script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${encodeURIComponent(apiKey)}&autoload=false&libraries=services,clusterer,drawing`;
 
   script.onload = () => {
+    // SDK 파일이 응답했으나 kakao.maps 객체가 준비되지 않은 경우 (잘못된 키, 도메인 미등록 등)
+    if (!window.kakao || !window.kakao.maps || typeof window.kakao.maps.load !== "function") {
+      createLoaderCover(
+        "❌ SDK 초기화 실패",
+        "카카오 SDK 파일은 응답했지만 지도 객체가 준비되지 않았습니다. JavaScript 키가 정확한지, 카카오 콘솔 Web 플랫폼 사이트 도메인에 https://newskool4d-sketch.github.io 가 등록되어 있는지 확인해 주세요."
+      );
+      return;
+    }
+
+    // kakao.maps.load 콜백이 일정 시간 내에 실행되지 않으면 오류 표시 (도메인 불일치 시 묵묵히 대기하는 케이스 방어)
+    let completed = false;
+    const timeoutId = setTimeout(() => {
+      if (completed) return;
+      completed = true;
+      createLoaderCover(
+        "⏱️ SDK 초기화 지연",
+        "카카오 SDK 초기화 응답이 지연되고 있습니다. 카카오 콘솔 Web 플랫폼 사이트 도메인에 https://newskool4d-sketch.github.io 가 등록되어 있는지 확인하고 다시 시도해 주세요."
+      );
+    }, 8000);
+
     window.kakao.maps.load(() => {
+      if (completed) return;
+      completed = true;
+      clearTimeout(timeoutId);
+
       const cover = document.getElementById("loader-cover");
       if (cover) {
         cover.style.opacity = "0";
         setTimeout(() => cover.remove(), 500);
       }
-      
+
       const mapDiv = document.getElementById("map");
       if (mapDiv) mapDiv.classList.add("visible");
 
