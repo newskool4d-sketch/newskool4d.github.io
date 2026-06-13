@@ -357,26 +357,45 @@
     }
 
     function createSchoolMarkers() {
-      const geocoder = new kakao.maps.services.Geocoder();
-      let pending = schools.length;
-      if (!pending) return;
+      // 미리 계산된 좌표(lat/lng)가 있으면 지오코딩 없이 즉시 표시 (정확·빠름, 요청 제한 없음)
+      const placeMarker = (school, coords) => {
+        const marker = new kakao.maps.Marker({ position: coords, map: mapInstance, title: school.name });
+        kakao.maps.event.addListener(marker, "click", () => focusSchool(school.id));
+        schoolMarkers.set(school.id, { school, coords, marker });
+      };
 
-      schools.forEach(school => {
+      const withCoords = schools.filter(s => Number.isFinite(s.lat) && Number.isFinite(s.lng));
+      const needGeocode = schools.filter(s => !(Number.isFinite(s.lat) && Number.isFinite(s.lng)));
+
+      withCoords.forEach(school => {
+        placeMarker(school, new kakao.maps.LatLng(school.lat, school.lng));
+      });
+
+      let pending = needGeocode.length;
+      if (!pending) {
+        renderSchools();
+        fitSchoolsView();
+        return;
+      }
+
+      // 좌표가 없는 학교만 보조적으로 주소 변환 (동시 호출 제한 방지를 위해 순차 처리)
+      const geocoder = new kakao.maps.services.Geocoder();
+      let idx = 0;
+      const geocodeNext = () => {
+        if (idx >= needGeocode.length) {
+          renderSchools();
+          fitSchoolsView();
+          return;
+        }
+        const school = needGeocode[idx++];
         geocoder.addressSearch(school.address, (result, status) => {
           if (status === kakao.maps.services.Status.OK && result[0]) {
-            const coords = new kakao.maps.LatLng(result[0].y, result[0].x);
-            const marker = new kakao.maps.Marker({ position: coords, map: mapInstance, title: school.name });
-            kakao.maps.event.addListener(marker, "click", () => focusSchool(school.id));
-            schoolMarkers.set(school.id, { school, coords, marker });
+            placeMarker(school, new kakao.maps.LatLng(result[0].y, result[0].x));
           }
-
-          pending -= 1;
-          if (pending === 0) {
-            renderSchools();
-            fitSchoolsView();
-          }
+          setTimeout(geocodeNext, 120);
         });
-      });
+      };
+      geocodeNext();
     }
 
     function updateMarkerVisibility(items) {
