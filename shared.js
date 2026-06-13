@@ -4,6 +4,8 @@
 const STORAGE_KEY = "incheon_kakao_js_key";
 const SHARED_ACTION_ATTR = "data-shared-action";
 const SHARED_STATUS_ATTR = "data-shared-status";
+const KAKAO_SDK_SRC = "https://dapi.kakao.com/v2/maps/sdk.js";
+const KAKAO_SDK_TIMEOUT_MS = 12000;
 const _hideTimers = new WeakMap();
 const _trapFocusHandlers = new WeakMap();
 
@@ -94,6 +96,24 @@ function hideInlineStatus(host) {
   window.clearTimeout(_hideTimers.get(status));
   _hideTimers.delete(status);
   status.hidden = true;
+}
+
+function isKakaoMapsReady() {
+  return Boolean(window.kakao?.maps?.load);
+}
+
+function hasKakaoMapServices() {
+  return Boolean(window.kakao?.maps?.services);
+}
+
+function removeKakaoSdkScripts() {
+  document
+    .querySelectorAll(`script[src*="${KAKAO_SDK_SRC}"]`)
+    .forEach((existingScript) => existingScript.remove());
+}
+
+function showKakaoSdkFailure(title, description) {
+  createLoaderCover(title, description);
 }
 
 /**
@@ -240,7 +260,7 @@ function injectSharedGNB(activeTab) {
     <div class="key-modal-content" data-status-host>
       <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 12px; color: #fff;">🔑 카카오 API 키 설정</h3>
       <p style="font-size: 13.5px; color: var(--text-sub); line-height: 1.6; margin-bottom: 20px;">
-        카카오 Developers의 [내 애플리케이션] &gt; [앱 키]에서 발급받은 <strong>JavaScript 키</strong>를 입력해주세요. 이 키는 브라우저 localStorage에 저장됩니다. 운영 전 카카오 콘솔 Web 플랫폼 사이트 도메인에 <strong>https://newskool4d-sketch.github.io</strong>를 등록해 주세요.
+        카카오 Developers의 [내 애플리케이션] &gt; [앱 키]에서 발급받은 <strong>JavaScript 키</strong>를 입력해주세요. 이 키는 브라우저 localStorage에 저장됩니다. 운영 전 카카오 콘솔에서 허용 도메인을 localhost 또는 실제 배포 도메인으로 제한해 주세요.
       </p>
       <div class="form-group" style="margin-bottom: 24px;">
         <label for="modal-key-input">JavaScript 키 입력</label>
@@ -326,65 +346,102 @@ function loadKakaoSDK(callback) {
   if (!apiKey) {
     createLoaderCover(
       "🔑 카카오 JavaScript 키 등록 필요",
-        "인천교육 공개지도를 실행하려면 카카오 Developers에서 발급한 JavaScript 키 등록이 필요합니다. 이 키는 브라우저 localStorage에 저장됩니다. 카카오 콘솔 Web 플랫폼 사이트 도메인에 https://newskool4d-sketch.github.io 를 등록한 뒤 입력해 주세요."
+        "newskool4d.github.io 인천교육 공개지도를 실행하려면 카카오 Developers에서 발급한 JavaScript 키 등록이 필요합니다. 이 키는 브라우저 localStorage에 저장되므로, 카카오 콘솔에서 허용 도메인을 localhost 또는 https://newskool4d.github.io 로 제한한 뒤 입력해주세요."
     );
     return;
   }
 
-  // 2. 키가 있는 경우 카카오 SDK 스크립트 태그 동적 삽입
-  document.querySelectorAll('script[src*="dapi.kakao.com/v2/maps/sdk.js"]').forEach((existingScript) => {
-    existingScript.remove();
-  });
-
-  const script = document.createElement("script");
-  script.type = "text/javascript";
-  script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${encodeURIComponent(apiKey)}&autoload=false&libraries=services,clusterer,drawing`;
-
-  script.onload = () => {
-    // SDK 파일이 응답했으나 kakao.maps 객체가 준비되지 않은 경우 (잘못된 키, 도메인 미등록 등)
-    if (!window.kakao || !window.kakao.maps || typeof window.kakao.maps.load !== "function") {
-      createLoaderCover(
+  const finishLoad = () => {
+    if (!hasKakaoMapServices()) {
+      showKakaoSdkFailure(
         "❌ SDK 초기화 실패",
-        "카카오 SDK 파일은 응답했지만 지도 객체가 준비되지 않았습니다. JavaScript 키가 정확한지, 카카오 콘솔 Web 플랫폼 사이트 도메인에 https://newskool4d-sketch.github.io 가 등록되어 있는지 확인해 주세요."
+        "카카오 지도 기본 객체는 준비됐지만 장소·주소 검색 서비스가 없습니다. services 라이브러리가 포함된 JavaScript 키 로드인지, 허용 도메인 설정이 맞는지 확인해 주세요."
       );
       return;
     }
 
-    // kakao.maps.load 콜백이 일정 시간 내에 실행되지 않으면 오류 표시 (도메인 불일치 시 묵묵히 대기하는 케이스 방어)
-    let completed = false;
-    const timeoutId = setTimeout(() => {
-      if (completed) return;
-      completed = true;
-      createLoaderCover(
-        "⏱️ SDK 초기화 지연",
-        "카카오 SDK 초기화 응답이 지연되고 있습니다. 카카오 콘솔 Web 플랫폼 사이트 도메인에 https://newskool4d-sketch.github.io 가 등록되어 있는지 확인하고 다시 시도해 주세요."
+    const cover = document.getElementById("loader-cover");
+    if (cover) {
+      cover.style.opacity = "0";
+      setTimeout(() => cover.remove(), 500);
+    }
+
+    const mapDiv = document.getElementById("map");
+    if (mapDiv) mapDiv.classList.add("visible");
+
+    if (typeof callback === "function") {
+      callback();
+    }
+  };
+
+  if (isKakaoMapsReady()) {
+    try {
+      window.kakao.maps.load(finishLoad);
+    } catch (error) {
+      showKakaoSdkFailure(
+        "❌ SDK 초기화 실패",
+        "이미 로드된 카카오 지도 객체를 초기화하는 중 오류가 발생했습니다. 페이지를 새로고침하거나 JavaScript 키와 허용 도메인을 다시 확인해 주세요."
       );
-    }, 8000);
+    }
+    return;
+  }
 
-    window.kakao.maps.load(() => {
-      if (completed) return;
-      completed = true;
-      clearTimeout(timeoutId);
+  // 2. 키가 있는 경우 카카오 SDK 스크립트 태그 동적 삽입
+  removeKakaoSdkScripts();
 
-      const cover = document.getElementById("loader-cover");
-      if (cover) {
-        cover.style.opacity = "0";
-        setTimeout(() => cover.remove(), 500);
-      }
+  const script = document.createElement("script");
+  script.type = "text/javascript";
+  script.src = `${KAKAO_SDK_SRC}?appkey=${encodeURIComponent(apiKey)}&autoload=false&libraries=services,clusterer,drawing`;
 
-      const mapDiv = document.getElementById("map");
-      if (mapDiv) mapDiv.classList.add("visible");
+  let settled = false;
+  const timeoutId = window.setTimeout(() => {
+    if (settled) return;
+    settled = true;
+    script.remove();
+    showKakaoSdkFailure(
+      "⏱️ SDK 로드 시간 초과",
+      "카카오 맵 라이브러리 응답이 지연되고 있습니다. 네트워크 연결, 브라우저 확장 프로그램 차단 여부, 카카오 Developers의 Web 플랫폼 도메인 등록 상태를 확인한 뒤 다시 시도해 주세요."
+    );
+  }, KAKAO_SDK_TIMEOUT_MS);
 
-      if (typeof callback === "function") {
-        callback();
-      }
-    });
+  const failLoad = (title, description) => {
+    if (settled) return;
+    settled = true;
+    window.clearTimeout(timeoutId);
+    script.remove();
+    showKakaoSdkFailure(title, description);
+  };
+
+  const completeLoad = () => {
+    if (settled) return;
+    settled = true;
+    window.clearTimeout(timeoutId);
+    finishLoad();
+  };
+
+  script.onload = () => {
+    if (!isKakaoMapsReady()) {
+      failLoad(
+        "❌ SDK 초기화 실패",
+        "카카오 SDK 파일은 내려받았지만 지도 객체가 초기화되지 않았습니다. JavaScript 키와 Web 플랫폼 허용 도메인이 현재 접속 주소와 일치하는지 확인해 주세요."
+      );
+      return;
+    }
+
+    try {
+      window.kakao.maps.load(completeLoad);
+    } catch (error) {
+      failLoad(
+        "❌ SDK 초기화 실패",
+        "카카오 지도 초기화 중 오류가 발생했습니다. 저장된 JavaScript 키를 다시 입력하거나 카카오 Developers의 허용 도메인 설정을 확인해 주세요."
+      );
+    }
   };
 
   script.onerror = () => {
-    createLoaderCover(
+    failLoad(
       "❌ SDK 로드 실패",
-      "카카오 맵 라이브러리를 로드하는 도중 에러가 발생했습니다. JavaScript 키가 정확한지, 카카오 콘솔 Web 플랫폼 사이트 도메인에 https://newskool4d-sketch.github.io 가 등록되어 있는지 확인해 주세요."
+      "카카오 맵 라이브러리를 로드하지 못했습니다. 네트워크 연결, 광고/보안 확장 프로그램 차단, JavaScript 키, 카카오 Developers 허용 도메인 등록을 확인해 주세요."
     );
   };
 
