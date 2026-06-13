@@ -346,7 +346,7 @@ function loadKakaoSDK(callback) {
   if (!apiKey) {
     createLoaderCover(
       "🔑 카카오 JavaScript 키 등록 필요",
-        "newskool4d.github.io 인천교육 공개지도를 실행하려면 카카오 Developers에서 발급한 JavaScript 키 등록이 필요합니다. 이 키는 브라우저 localStorage에 저장되므로, 카카오 콘솔에서 허용 도메인을 localhost 또는 https://newskool4d.github.io 로 제한한 뒤 입력해주세요."
+        "newskool4d.github.io 인천교육 공개지도를 실행하려면 카카오 Developers에서 발급한 JavaScript 키 등록이 필요합니다. 이 키는 브라우저 localStorage에 저장되므로, 카카오 콘솔에서 허용 도메인을 localhost 또는 https://newskool4d-sketch.github.io 로 제한한 뒤 입력해주세요."
     );
     return;
   }
