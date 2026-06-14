@@ -20,6 +20,7 @@
       color: #0f172a;
     }
     .badge-isec { background-color: var(--accent); }
+    .badge-office { background-color: #f59e0b; }
     .badge-direct { background-color: var(--teal-light); }
     .badge-library { background-color: var(--blue-light); color: #fff; }
     .badge-partner { background-color: #a855f7; color: #fff; } /* 보라색 연계체험처 */
@@ -82,11 +83,11 @@
     <div class="sidebar">
       <div class="sidebar-header">
         <h2 class="sidebar-title">🗺️ 교육청 체험교육 기관 안내</h2>
-        <p class="sidebar-subtitle">인천광역시교육청 직속기관, 강화 수련 학습장 및 도서관, 그리고 협업 연계 체험처 위치 정보를 체계적으로 검색합니다.</p>
+        <p class="sidebar-subtitle">인천광역시교육청 본청·교육지원청, 직속기관, 강화 수련 학습장 및 도서관, 그리고 협업 연계 체험처 위치 정보를 체계적으로 검색합니다.</p>
         <div class="workflow-status" id="infra-workflow-status">
           <div class="workflow-status-chip ready">
             <strong>유형</strong>
-            <span id="infra-category-chip-text">4유형</span>
+            <span id="infra-category-chip-text">5유형</span>
           </div>
           <div class="workflow-status-chip ready">
             <strong>권역</strong>
@@ -134,6 +135,11 @@
               <input type="checkbox" id="chk-cat-direct" checked data-action="filter-places">
               <span class="custom-checkbox"></span>
               <span>시교육청 직속 교육원 (난정 포함)</span>
+            </label>
+            <label class="checkbox-container">
+              <input type="checkbox" id="chk-cat-office" checked data-action="filter-places">
+              <span class="custom-checkbox"></span>
+              <span>시교육청 본청·교육지원청</span>
             </label>
             <label class="checkbox-container">
               <input type="checkbox" id="chk-cat-library" checked data-action="filter-places">
@@ -196,7 +202,7 @@
           <strong>교육 기관 위치</strong>
           <span id="infra-map-summary">유형·권역 필터 기준</span>
         </div>
-        <button type="button" class="btn-secondary" id="fit-infra-btn">전체 보기</button>
+        <button type="button" class="btn-secondary" id="fit-infra-btn" disabled aria-disabled="true" title="카카오 JavaScript 키를 등록하면 지도 기능이 활성화됩니다.">전체 보기</button>
       </div>
       <div id="map"></div>
     </div>
@@ -257,6 +263,78 @@
         "lng": 126.47
       },
       {
+        "id": "office-main",
+        "category": "office",
+        "region": "incheon-city",
+        "name": "인천광역시교육청",
+        "address": "인천광역시 남동구 정각로 9",
+        "tel": "032-423-3303",
+        "url": "https://www.ice.go.kr/ice/main.do",
+        "desc": "인천 관내 중등·특수·대안교육과 주요 교육행정을 총괄하는 시교육청 본청입니다.",
+        "lat": 37.4562754,
+        "lng": 126.703048
+      },
+      {
+        "id": "office-ganghwa",
+        "category": "office",
+        "region": "ganghwa",
+        "name": "인천광역시강화교육지원청",
+        "address": "인천광역시 강화군 불은면 중앙로 607",
+        "tel": "032-930-7777",
+        "url": "https://ganghwa.ice.go.kr/main/main.asp",
+        "desc": "강화 지역 유치원·초등학교·중학교 교육지원 업무를 담당하는 지역 교육지원청입니다.",
+        "lat": 37.7081577,
+        "lng": 126.4494795
+      },
+      {
+        "id": "office-south",
+        "category": "office",
+        "region": "incheon-city",
+        "name": "인천광역시남부교육지원청",
+        "address": "인천광역시 중구 차이나타운로51번길 45",
+        "tel": "032-762-7361",
+        "url": "https://nambu.ice.go.kr/",
+        "desc": "중구·동구·미추홀구 일대 유치원·초등학교·중학교 교육지원 업무를 담당하는 지역 교육지원청입니다.",
+        "lat": 37.4748175,
+        "lng": 126.6213125
+      },
+      {
+        "id": "office-north",
+        "category": "office",
+        "region": "incheon-city",
+        "name": "인천광역시북부교육지원청",
+        "address": "인천광역시 부평구 부평문화로53번길 35",
+        "tel": "032-524-9631~2",
+        "url": "https://bukbu.ice.go.kr/",
+        "desc": "부평구 일대 유치원·초등학교·중학교 교육지원 업무를 담당하는 지역 교육지원청입니다.",
+        "lat": 37.4957395,
+        "lng": 126.7212777
+      },
+      {
+        "id": "office-east",
+        "category": "office",
+        "region": "incheon-city",
+        "name": "인천광역시동부교육지원청",
+        "address": "인천광역시 남동구 인주대로 923",
+        "tel": "032-460-6000",
+        "url": "https://dongbu.ice.go.kr/",
+        "desc": "남동구·연수구 일대 유치원·초등학교·중학교 교육지원 업무를 담당하는 지역 교육지원청입니다.",
+        "lat": 37.4485429,
+        "lng": 126.7400125
+      },
+      {
+        "id": "office-west",
+        "category": "office",
+        "region": "incheon-city",
+        "name": "인천광역시서부교육지원청",
+        "address": "인천광역시 서구 경명대로 713",
+        "tel": "032-560-6600",
+        "url": "https://seobu.ice.go.kr/",
+        "desc": "서구·계양구 일대 유치원·초등학교·중학교 교육지원 업무를 담당하는 지역 교육지원청입니다.",
+        "lat": 37.552612,
+        "lng": 126.687904
+      },
+      {
         "id": "direct-nanjeong",
         "category": "direct",
         "region": "ganghwa",
@@ -265,8 +343,8 @@
         "tel": "032-627-0120",
         "url": "https://njei.ice.go.kr",
         "desc": "교동도에 개원한 전국 최초의 평화 전문 독립 직속기관으로, 접경 공간 지리적 특성을 활용해 상생과 소통의 평화 가치를 확산합니다.",
-        "lat": 37.7869,
-        "lng": 126.2804
+        "lat": 37.770389,
+        "lng": 126.239282
       },
       {
         "id": "direct-ai",
@@ -277,8 +355,8 @@
         "tel": "032-745-0100",
         "url": "https://aice.ice.go.kr",
         "desc": "영종에 건립된 디지털 미래 인재 육성 전초기지로, 인공지능 실습실 및 메타버스 융합 교육 과정을 선도적으로 운영합니다.",
-        "lat": 37.494,
-        "lng": 126.5312
+        "lat": 37.490727,
+        "lng": 126.50687
       },
       {
         "id": "direct-jemulpo-ai",
@@ -289,8 +367,8 @@
         "tel": "032-770-9800",
         "url": "https://aice.ice.go.kr",
         "desc": "인천역 인근 상상플랫폼 3층에 위치하여 미래 세대의 인공지능 체험 학습, SW 자율 실습 및 크리에이티브 메이커 창작 활동을 지원합니다.",
-        "lat": 37.4715,
-        "lng": 126.6042
+        "lat": 37.476165,
+        "lng": 126.614629
       },
       {
         "id": "direct-lifelong",
@@ -301,8 +379,8 @@
         "tel": "032-899-1500",
         "url": "https://ile.ice.go.kr",
         "desc": "인천 시민을 위한 다채로운 지식 공유 교실과 교양 강좌, 문화 공연을 제공하여 배움과 삶이 융합되는 평생교육의 터전입니다.",
-        "lat": 37.4097,
-        "lng": 126.6768
+        "lat": 37.398454,
+        "lng": 126.671896
       },
       {
         "id": "direct-safety",
@@ -313,8 +391,8 @@
         "tel": "032-458-9300",
         "url": "https://safety.ice.go.kr",
         "desc": "일상 화재, 교통 안전, 자연재해 대처 등을 최신 VR 실감형 교육을 통해 생생하게 몸으로 훈련하는 종합 안전 전문 체험장입니다.",
-        "lat": 37.446,
-        "lng": 126.7167
+        "lat": 37.452066,
+        "lng": 126.715942
       },
       {
         "id": "direct-culture",
@@ -325,8 +403,8 @@
         "tel": "032-760-3400",
         "url": "https://iecs.ice.go.kr",
         "desc": "예술 전시장, 청소년 오케스트라 교육, 보컬/댄스 연습실, 다목적 체육관을 갖춘 청소년의 건강한 휴식과 문화 충전소입니다.",
-        "lat": 37.475,
-        "lng": 126.6231
+        "lat": 37.475964,
+        "lng": 126.629389
       },
       {
         "id": "partner-museum",
@@ -475,10 +553,16 @@
     ];
 
     let INFRA_DATA = FALLBACK_INFRA_DATA;
-    const VALID_INFRA_CATEGORIES = new Set(["isec", "direct", "library", "partner"]);
+    const VALID_INFRA_CATEGORIES = new Set(["isec", "office", "direct", "library", "partner"]);
     const VALID_INFRA_REGIONS = new Set(["ganghwa", "yeongjong", "incheon-city"]);
 
     function isValidInfraRecord(place) {
+      const normalizedTel = typeof place?.tel === "string"
+        ? place.tel
+        : typeof place?.phone === "string"
+          ? place.phone
+          : null;
+
       if (!(
         place &&
         typeof place.id === "string" &&
@@ -487,7 +571,7 @@
         typeof place.name === "string" &&
         typeof place.address === "string" &&
         typeof place.desc === "string" &&
-        typeof place.phone === "string" &&
+        typeof normalizedTel === "string" &&
         typeof place.url === "string" &&
         VALID_INFRA_CATEGORIES.has(place.category) &&
         VALID_INFRA_REGIONS.has(place.region)
@@ -504,7 +588,12 @@
         if (!response.ok) throw new Error("infra.json load failed");
         const loadedPlaces = await response.json();
         if (!Array.isArray(loadedPlaces)) throw new Error("infra data must be an array");
-        const parsedPlaces = loadedPlaces.filter(isValidInfraRecord);
+        const parsedPlaces = loadedPlaces
+          .filter(isValidInfraRecord)
+          .map(place => ({
+            ...place,
+            tel: typeof place.tel === "string" ? place.tel : place.phone
+          }));
         if (parsedPlaces.length === 0) throw new Error("infra data is empty");
         INFRA_DATA = parsedPlaces;
       } catch {
@@ -517,22 +606,45 @@
     let activeOverlay = null;
     let lastPlaceOverlayTrigger = null;
     let _infraIdleTimer = null;
+    let isInfrastructureMapReady = false;
 
     // 카테고리 명칭 맵
     const catNames = {
       isec: "학생교육원",
+      office: "교육청",
       direct: "직속기관",
       library: "도서관",
       partner: "연계체험처"
     };
+
+    function updateInfrastructureMapAvailability() {
+      const fitButton = document.getElementById("fit-infra-btn");
+      if (!fitButton) return;
+      fitButton.disabled = !isInfrastructureMapReady;
+      fitButton.setAttribute("aria-disabled", String(!isInfrastructureMapReady));
+      fitButton.title = isInfrastructureMapReady
+        ? "현재 필터 기준 기관 위치를 지도에 맞춰 표시합니다."
+        : "카카오 JavaScript 키를 등록하면 지도 기능이 활성화됩니다.";
+    }
 
     // 2. 초기 기동 함수
     window.addEventListener("DOMContentLoaded", async () => {
       // 공통 GNB 렌더링
       injectSharedGNB('infrastructure');
       bindInfrastructurePageEvents();
-      
+
       await loadInfrastructureData();
+      restoreInfraUrlState();
+      filterAndRenderPlaces();
+      updateInfrastructureMapAvailability();
+
+      if (!getCachedKakaoKey()) {
+        createLoaderCover(
+          "🔑 카카오 JavaScript 키 등록 필요",
+          "기관 목록은 먼저 확인할 수 있습니다. 지도 이동과 위치 마커를 보려면 카카오 Developers에서 발급한 JavaScript 키를 등록해주세요."
+        );
+        return;
+      }
 
       // 카카오 SDK 기동 시도 및 지도 생성
       loadKakaoSDK(() => {
@@ -542,7 +654,7 @@
 
     function saveInfraUrlState() {
       const params = new URLSearchParams();
-      [['chk-cat-isec','isec'],['chk-cat-direct','direct'],['chk-cat-library','library'],['chk-cat-partner','partner'],
+      [['chk-cat-isec','isec'],['chk-cat-office','office'],['chk-cat-direct','direct'],['chk-cat-library','library'],['chk-cat-partner','partner'],
        ['chk-reg-ganghwa','ganghwa'],['chk-reg-yeongjong','yeongjong'],['chk-reg-city','city']].forEach(([id, key]) => {
         const el = document.getElementById(id);
         if (el && !el.checked) params.set(key, '0');
@@ -558,7 +670,7 @@
 
     function restoreInfraUrlState() {
       const params = new URLSearchParams(location.search);
-      [['chk-cat-isec','isec'],['chk-cat-direct','direct'],['chk-cat-library','library'],['chk-cat-partner','partner'],
+      [['chk-cat-isec','isec'],['chk-cat-office','office'],['chk-cat-direct','direct'],['chk-cat-library','library'],['chk-cat-partner','partner'],
        ['chk-reg-ganghwa','ganghwa'],['chk-reg-yeongjong','yeongjong'],['chk-reg-city','city']].forEach(([id, key]) => {
         const el = document.getElementById(id);
         if (el && params.has(key)) el.checked = params.get(key) !== '0';
@@ -613,8 +725,14 @@
 
     function registerInfrastructureMarker(place, coords) {
       let markerImageUrl = null;
+      let markerImageSize = new kakao.maps.Size(31, 35);
+      let markerImageOffset = new kakao.maps.Point(15, 35);
       if (place.category === 'isec') {
         markerImageUrl = 'https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/marker_yellow.png';
+      } else if (place.category === 'office') {
+        markerImageUrl = 'https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/markerStar.png';
+        markerImageSize = new kakao.maps.Size(24, 35);
+        markerImageOffset = new kakao.maps.Point(12, 35);
       } else if (place.category === 'direct') {
         markerImageUrl = 'https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/marker_red.png';
       }
@@ -627,8 +745,8 @@
       if (markerImageUrl) {
         const markerImage = new kakao.maps.MarkerImage(
           markerImageUrl,
-          new kakao.maps.Size(31, 35),
-          { offset: new kakao.maps.Point(15, 35) }
+          markerImageSize,
+          { offset: markerImageOffset }
         );
         markerOptions.image = markerImage;
       }
@@ -663,7 +781,9 @@
       };
       
       mapInstance = new kakao.maps.Map(container, options);
+      isInfrastructureMapReady = true;
       applyStandardKakaoMapSettings(mapInstance);
+      updateInfrastructureMapAvailability();
 
       initSidebarResizer(mapInstance);
       document.getElementById("fit-infra-btn").addEventListener("click", fitPlacesView);
@@ -710,21 +830,25 @@
     }
 
     function updateInfraWorkflowStatus(count) {
-      const activeCategoryCount = ["chk-cat-isec", "chk-cat-direct", "chk-cat-library", "chk-cat-partner"]
+      const activeCategoryCount = ["chk-cat-isec", "chk-cat-office", "chk-cat-direct", "chk-cat-library", "chk-cat-partner"]
         .filter(id => document.getElementById(id).checked).length;
       const activeRegionCount = ["chk-reg-ganghwa", "chk-reg-yeongjong", "chk-reg-city"]
         .filter(id => document.getElementById(id).checked).length;
+      const mapSummary = isInfrastructureMapReady
+        ? `${activeCategoryCount}유형 · ${activeRegionCount}권역`
+        : `${activeCategoryCount}유형 · ${activeRegionCount}권역 · 목록 우선 표시`;
 
       document.getElementById("infra-category-chip-text").textContent = `${activeCategoryCount}유형`;
       document.getElementById("infra-region-chip-text").textContent = `${activeRegionCount}권역`;
       document.getElementById("infra-count-chip-text").textContent = `${count}개소`;
-      document.getElementById("infra-map-summary").textContent = `${activeCategoryCount}유형 · ${activeRegionCount}권역`;
+      document.getElementById("infra-map-summary").textContent = mapSummary;
       document.getElementById("infra-count-chip").classList.toggle("ready", count > 0);
     }
 
     function visiblePlaceCoords() {
       const filterCats = {
         isec: document.getElementById("chk-cat-isec").checked,
+        office: document.getElementById("chk-cat-office").checked,
         direct: document.getElementById("chk-cat-direct").checked,
         library: document.getElementById("chk-cat-library").checked,
         partner: document.getElementById("chk-cat-partner").checked
@@ -757,6 +881,7 @@
       // 1. 체크된 필터 상태 수집
       const filterCats = {
         isec: document.getElementById("chk-cat-isec").checked,
+        office: document.getElementById("chk-cat-office").checked,
         direct: document.getElementById("chk-cat-direct").checked,
         library: document.getElementById("chk-cat-library").checked,
         partner: document.getElementById("chk-cat-partner").checked
@@ -838,10 +963,36 @@
      * @param {string} id 
      */
     function focusPlace(id, triggerEl = null) {
-      const item = markersMap[id];
-      if (!item) return;
-
       const resolvedTrigger = triggerEl?.closest?.("[data-action='focus-place']") || triggerEl;
+
+      document.querySelectorAll(".place-card").forEach(c => c.classList.remove("active"));
+      const activeCard = resolvedTrigger instanceof HTMLElement
+        ? resolvedTrigger
+        : document.getElementById(`card-${id}`);
+      if (activeCard) {
+        activeCard.classList.add("active");
+        activeCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+
+      if (!mapInstance) {
+        showInlineStatus(
+          document.getElementById("place-list-dom"),
+          "기관 목록은 먼저 확인할 수 있습니다. 카카오 JavaScript 키를 등록하면 지도 이동과 상세 위치 팝업을 사용할 수 있습니다.",
+          "info"
+        );
+        return;
+      }
+
+      const item = markersMap[id];
+      if (!item) {
+        showInlineStatus(
+          document.getElementById("place-list-dom"),
+          "선택한 기관의 지도 좌표를 아직 불러오지 못했습니다. 잠시 후 다시 시도해주세요.",
+          "error"
+        );
+        return;
+      }
+
       if (resolvedTrigger instanceof HTMLElement) {
         lastPlaceOverlayTrigger = resolvedTrigger;
       }
@@ -849,22 +1000,21 @@
       // 1. 지도 시점 이동 (panTo)
       mapInstance.panTo(item.coords);
 
-      // 2. 리스트 카드 액티브 하이라이트
-      document.querySelectorAll(".place-card").forEach(c => c.classList.remove("active"));
-      const activeCard = document.getElementById(`card-${id}`);
-      if (activeCard) {
-        activeCard.classList.add("active");
-        activeCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-      }
-
-      // 3. 기존의 오버레이 제거
+      // 2. 기존의 오버레이 제거
       if (activeOverlay) {
         activeOverlay.setMap(null);
       }
 
-      // 4. 프리미엄 맞춤형 오버레이 콘텐츠 생성
+      // 3. 프리미엄 맞춤형 오버레이 콘텐츠 생성
       const popupDom = document.createElement("div");
       popupDom.className = "map-popup";
+      const phoneMarkup = item.data.tel
+        ? `
+          <div class="map-popup-info-item">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M3 5a2 2 0 012-2h3.28a1 1 0 01.94.725l.548 2.2a1 1 0 01-.321.988l-1.305.98a10.582 10.582 0 004.872 4.872l.98-1.305a1 1 0 01.988-.321l2.2.548a1 1 0 01.725.94V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
+            <span>대표전화: ${escapeHtml(item.data.tel)}</span>
+          </div>`
+        : "";
       popupDom.innerHTML = `
         <div class="map-popup-header">
           <strong>${escapeHtml(item.data.name)}</strong>
@@ -876,10 +1026,7 @@
             <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
             <span>${escapeHtml(item.data.address)}</span>
           </div>
-          <div class="map-popup-info-item">
-            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M3 5a2 2 0 012-2h3.28a1 1 0 01.94.725l.548 2.2a1 1 0 01-.321.988l-1.305.98a10.582 10.582 0 004.872 4.872l.98-1.305a1 1 0 01.988-.321l2.2.548a1 1 0 01.725.94V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
-            <span>대표전화: ${escapeHtml(item.data.tel)}</span>
-          </div>
+          ${phoneMarkup}
         </div>
         <a href="${escapeHtml(safeHttpUrl(item.data.url))}" target="_blank" rel="noopener noreferrer" class="map-popup-link-btn">
           <span>🌐 공식 홈페이지 방문</span>
@@ -887,7 +1034,7 @@
         </a>
       `;
 
-      // 오버레이 인스턴스화 및 맵 로드
+      // 4. 오버레이 인스턴스화 및 맵 로드
       activeOverlay = new kakao.maps.CustomOverlay({
         content: popupDom,
         position: item.coords,

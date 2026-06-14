@@ -1,0 +1,16 @@
+# 비공개·개발 전용 파일
+PRIVATE_LOCAL_APP_README.md
+private-local-map.html
+business.html
+build_schools_json.py
+fix-recommendations.md
+handoff.md
+pre-deploy-checklist.md
+ui-ux-ai-slop-audit.md
+
+# 개발 도구
+.claude/
+.omo/
+.tmp/
+.playwright-mcp/
+node_modules/
