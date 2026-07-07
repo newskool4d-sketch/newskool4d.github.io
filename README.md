@@ -25,13 +25,37 @@
 
 ## 카카오 지도 API 설정
 
-카카오 Developers에서 Web 플랫폼 사이트 도메인에 아래 주소를 등록합니다.
+카카오 공식 문서는 지도 표시와 주소 지오코딩을 서로 다른 키/실행 위치로 구분합니다.
+
+- Maps JavaScript API는 Kakao Developers의 JavaScript 키를 `appkey`로 사용하며, JavaScript SDK를 실행할 Web 플랫폼 도메인을 등록해야 합니다.
+- Local REST API 주소 검색/좌표 변환은 REST API이며 `Authorization: KakaoAK ${REST_API_KEY}` 헤더를 사용합니다.
+- 따라서 REST 키는 서버 전용입니다. `KAKAO_REST_API_KEY` 또는 REST 키 값을 브라우저 코드, HTML, 공개 정적 파일, GitHub Pages 저장소에 넣지 않습니다.
+
+### 배포/키 모드 매트릭스
+
+| 모드 | 호스팅/실행 위치 | 필요한 키 | 브라우저 저장 | 사용 범위 | 금지 사항 |
+| --- | --- | --- | --- | --- | --- |
+| no-key/reference mode | GitHub Pages 또는 로컬 정적 서버 | 없음 | 가져오기/연결선 데이터가 이 브라우저의 localStorage에 저장될 수 있음 | README, 샘플 데이터, 검색/필터, CSV/XLSX 미리보기, JSON 내보내기, 좌표 보유 행 검토 | 실제 카카오 지도 타일 렌더링을 검증했다고 주장하지 않음 |
+| public static Kakao JavaScript key mode | GitHub Pages 또는 정적 서버 | Kakao JavaScript 키 | 사용자가 입력한 JavaScript 키가 이 브라우저의 localStorage에 저장됨 | 도메인 제한된 공개 정적 지도 표시, 마커/클러스터/연결선 표시 | 실제 키를 커밋하거나 공개 JS/HTML에 하드코딩하지 않음 |
+| local browser import mode | 사용자 PC 브라우저와 로컬 정적 서버 | 지도 표시가 필요할 때만 JavaScript 키 | 업로드 행, 연결선, JavaScript 키가 해당 브라우저 localStorage에 저장됨 | 업무용 CSV/XLSX를 서버 전송 없이 미리보기/병합/내보내기. 좌표가 이미 있는 행은 지도 마커 후보가 됨 | 민감 파일을 공개 저장소에 포함하거나 REST 키를 브라우저에 입력하지 않음 |
+| Phase 2 Vercel/REST server geocode mode | 향후 Vercel 서버 라우트 등 비공개 서버 | 서버 환경변수의 REST API 키 | 브라우저에는 REST 키 저장 없음 | 서버가 주소만 받아 Kakao Local REST API로 좌표 변환 후 결과 반환 | 현재 정적 앱의 전제 조건으로 삼지 않음. REST 키를 public env, 클라이언트 번들, 정적 파일에 노출하지 않음 |
+
+### JavaScript 키 운영
+
+Kakao Developers에서 Web 플랫폼 사이트 도메인에 운영 주소를 등록합니다.
 
 ```text
 https://newskool4d.github.io
+http://localhost:8080
 ```
 
-지도 화면에서 사용하는 키는 Kakao Maps JavaScript 키입니다. JavaScript 키는 브라우저에서 보일 수 있으므로, 공개 저장소에는 가능하면 하드코딩하지 않고 카카오 Developers에서 허용 도메인을 제한해 운영합니다.
+지도 화면에서 사용하는 키는 Kakao Maps JavaScript 키입니다. 브라우저 JavaScript 키는 네트워크 요청과 개발자 도구에서 보일 수 있으므로 비밀값으로 취급하지 않습니다. 대신 Kakao Developers에서 허용 도메인을 제한하고, 실제 키는 커밋하지 않습니다. 이 앱은 사용자가 입력한 JavaScript 키를 해당 브라우저의 localStorage에 저장해 다시 사용합니다. localStorage는 로컬 브라우저 저장소일 뿐 암호화 저장소가 아니며, 브라우저 데이터 삭제 또는 앱의 JSON 내보내기/초기화 절차로 정리할 수 있습니다.
+
+### REST 키와 Phase 2 서버 옵션
+
+주소를 좌표로 바꾸는 Kakao Local API는 REST 전용입니다. REST 키는 서버에서만 `Authorization: KakaoAK ...` 헤더로 사용해야 하며, 정적 HTML/JS나 public 환경변수에 두면 안 됩니다.
+
+Phase 2에서 대량 주소 지오코딩이 필요하면 Vercel 같은 서버 라우트를 별도로 둡니다. 서버는 `KAKAO_REST_API_KEY`를 비공개 환경변수로 읽고, 브라우저는 주소와 행 식별자처럼 필요한 최소 데이터만 서버에 보냅니다. 업로드 파일의 사용자정의 열 전체나 민감 필드는 REST API로 전달하지 않습니다. 이 Phase 2 서버는 아직 현재 정적 배포의 필수 구성요소가 아닙니다.
 
 ## 로컬 비공개 앱
 
@@ -53,3 +77,11 @@ python -m http.server 8080
 ```
 
 브라우저에서 `http://localhost:8080/`으로 접속합니다.
+
+## Vendored browser libraries
+
+| File | Source | Version | License |
+| --- | --- | --- | --- |
+| `vendor/xlsx.full.min.js` | `https://unpkg.com/xlsx@0.18.5/dist/xlsx.full.min.js` | SheetJS `xlsx@0.18.5` | Apache-2.0, see `vendor/xlsx.LICENSE.txt` |
+
+The spreadsheet importer uses this local browser asset so CSV/XLS/XLSX preview can run in the static app without a bundler or runtime CDN dependency.
