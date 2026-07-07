@@ -1,0 +1,144 @@
+[
+  {
+    "id": "office-main",
+    "name": "인천광역시교육청",
+    "type": "headquarters",
+    "office": "main",
+    "officeSource": "explicit",
+    "address": "인천광역시 남동구 정각로 9",
+    "lat": 37.4562754,
+    "lng": 126.703048,
+    "phone": "032-423-3303",
+    "url": "https://www.ice.go.kr/ice/main.do",
+    "description": "인천 교육행정을 총괄하는 본청입니다."
+  },
+  {
+    "id": "office-ganghwa",
+    "name": "인천광역시강화교육지원청",
+    "type": "support-office",
+    "office": "ganghwa",
+    "officeSource": "explicit",
+    "address": "인천광역시 강화군 불은면 중앙로 607",
+    "lat": 37.7081577,
+    "lng": 126.4494795,
+    "phone": "032-930-7777",
+    "url": "https://ganghwa.ice.go.kr/main/main.asp"
+  },
+  {
+    "id": "office-south",
+    "name": "인천광역시남부교육지원청",
+    "type": "support-office",
+    "office": "south",
+    "officeSource": "explicit",
+    "address": "인천광역시 중구 차이나타운로51번길 45",
+    "lat": 37.4748175,
+    "lng": 126.6213125,
+    "phone": "032-762-7361",
+    "url": "https://nambu.ice.go.kr/"
+  },
+  {
+    "id": "office-north",
+    "name": "인천광역시북부교육지원청",
+    "type": "support-office",
+    "office": "north",
+    "officeSource": "explicit",
+    "address": "인천광역시 부평구 부평문화로53번길 35",
+    "lat": 37.4957395,
+    "lng": 126.7212777,
+    "phone": "032-524-9631",
+    "url": "https://bukbu.ice.go.kr/"
+  },
+  {
+    "id": "office-east",
+    "name": "인천광역시동부교육지원청",
+    "type": "support-office",
+    "office": "east",
+    "officeSource": "explicit",
+    "address": "인천광역시 남동구 인주대로 923",
+    "lat": 37.4485429,
+    "lng": 126.7400125,
+    "phone": "032-460-6000",
+    "url": "https://dongbu.ice.go.kr/"
+  },
+  {
+    "id": "office-west",
+    "name": "인천광역시서부교육지원청",
+    "type": "support-office",
+    "office": "west",
+    "officeSource": "explicit",
+    "address": "인천광역시 서구 경명대로 713",
+    "lat": 37.552612,
+    "lng": 126.687904,
+    "phone": "032-560-6600",
+    "url": "https://seobu.ice.go.kr/"
+  },
+  {
+    "id": "direct-ai",
+    "name": "인천광역시교육청 AI융합교육원",
+    "type": "direct-agency",
+    "office": "main",
+    "officeSource": "explicit",
+    "address": "인천광역시 중구 영종대로277번길 74-10",
+    "lat": 37.490727,
+    "lng": 126.50687,
+    "phone": "032-745-0100",
+    "url": "https://aice.ice.go.kr"
+  },
+  {
+    "id": "lib-jungang",
+    "name": "인천광역시교육청 중앙도서관",
+    "type": "library",
+    "office": "main",
+    "officeSource": "explicit",
+    "address": "인천광역시 남동구 정각로 9",
+    "lat": 37.4562,
+    "lng": 126.7052,
+    "phone": "032-627-8390",
+    "url": "https://lib.ice.go.kr/jungang"
+  },
+  {
+    "id": "isec-main",
+    "name": "인천학생교육원 본원 / 해양환경체험학습장",
+    "type": "experience-site",
+    "office": "ganghwa",
+    "officeSource": "explicit",
+    "address": "인천광역시 강화군 화도면 해안남로 2463",
+    "lat": 37.6082,
+    "lng": 126.4663,
+    "phone": "032-930-9300",
+    "url": "https://isec.ice.go.kr"
+  },
+  {
+    "id": "partner-museum",
+    "name": "강화역사박물관 / 자연사박물관",
+    "type": "partner",
+    "office": "ganghwa",
+    "officeSource": "explicit",
+    "address": "인천광역시 강화군 하점면 강화대로 994-19",
+    "lat": 37.7746,
+    "lng": 126.4359,
+    "phone": "032-930-1500",
+    "url": "https://www.ganghwa.go.kr/open_content/museum/"
+  },
+  {
+    "id": "sch-501",
+    "name": "인천청라초등학교",
+    "type": "school",
+    "office": "west",
+    "officeSource": "explicit",
+    "address": "인천광역시 서구 청라라임로 105",
+    "level": "elem"
+  },
+  {
+    "id": "sample-imported-001",
+    "name": "샘플 업로드 기관",
+    "type": "imported",
+    "office": "unassigned",
+    "officeSource": "imported",
+    "address": "인천광역시 남동구 정각로 9",
+    "customFields": {
+      "원본분류": "사용자 샘플",
+      "메모": "민감정보가 없는 템플릿 행"
+    }
+  }
+]
