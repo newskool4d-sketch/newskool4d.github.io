@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="인천교육 기관, 학교, 업로드 자료를 한 화면에서 탐색하는 통합 지도 작업 화면입니다.">
+  <link rel="icon" href="data:,">
+  <title>인천교육 통합지도 작업 화면</title>
+  <style>
+    :root {
+      --um-canvas: #ffffff;
+      --um-ink: #1c1c1e;
+      --um-ink-deep: #050038;
+      --um-muted: #6b6f7e;
+      --um-hairline: #e0e2e8;
+      --um-surface: #f7f8fa;
+      --um-yellow: #ffd02f;
+      --um-yellow-soft: #fff8e0;
+      --um-blue: #4262ff;
+      --um-blue-pressed: #2a41b6;
+      --um-success: #00b473;
+      --um-danger-soft: #fbd4d4;
+      --um-school: #fde0f0;
+      --um-library: #c3faf5;
+      --um-experience: #ffe6cd;
+      --um-imported: #f5f3ff;
+      --um-space-1: 4px;
+      --um-space-2: 8px;
+      --um-space-3: 12px;
+      --um-space-4: 16px;
+      --um-space-5: 20px;
+      --um-space-6: 24px;
+      --um-space-8: 32px;
+      --um-radius-sm: 8px;
+      --um-radius-md: 12px;
+      --um-radius-lg: 16px;
+      --um-pill: 9999px;
+      --um-raised: 0 4px 12px rgba(5, 0, 56, 0.06);
+      --um-modal: 0 16px 48px rgba(5, 0, 56, 0.12);
+      color: var(--um-ink);
+      font-family: "Pretendard", "Noto Sans KR", "Apple SD Gothic Neo", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+      background: var(--um-canvas);
+    }
+
+    * { box-sizing: border-box; }
+
+    html,
+    body {
+      min-width: 0;
+      min-height: 100%;
+      margin: 0;
+      background: var(--um-canvas);
+      color: var(--um-ink);
+    }
+
+    body { overflow-x: hidden; }
+
+    button,
+    input,
+    select {
+      font: inherit;
+    }
+
+    a { color: inherit; }
+
+    :focus-visible {
+      outline: 2px solid var(--um-blue);
+      outline-offset: 2px;
+    }
+
+    .um-shell {
+      min-height: 100dvh;
+      display: grid;
+      grid-template-rows: auto auto minmax(0, 1fr);
+      background:
+        linear-gradient(90deg, rgba(224, 226, 232, 0.52) 1px, transparent 1px),
+        linear-gradient(rgba(224, 226, 232, 0.52) 1px, transparent 1px),
+        var(--um-canvas);
+      background-size: 32px 32px;
+    }
+
+    .um-header,
+    .um-toolbar {
+      background: rgba(255, 255, 255, 0.94);
+      border-bottom: 1px solid var(--um-hairline);
+      backdrop-filter: blur(12px);
+    }
+
+    .um-header {
+      min-height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--um-space-4);
+      padding: var(--um-space-3) var(--um-space-6);
+    }
+
+    .um-brand {
+      display: flex;
+      align-items: center;
+      min-width: 0;
+      gap: var(--um-space-3);
+      text-decoration: none;
+    }
+
+    .um-brand-mark {
+      width: 36px;
+      height: 36px;
+      display: grid;
+      place-items: center;
+      flex: 0 0 auto;
+      border-radius: var(--um-radius-sm);
+      background: var(--um-yellow);
+      color: var(--um-ink-deep);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .um-brand strong,
+    .um-panel-title strong {
+      display: block;
+      color: var(--um-ink-deep);
+      font-size: 22px;
+      line-height: 1.3;
+    }
+
+    .um-brand span,
+    .um-panel-title span {
+      display: block;
+      color: var(--um-muted);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .um-header-actions,
+    .um-control-group,
+    .um-layer-toggles,
+    .um-counts,
+    .um-row-meta,
+    .um-map-status {
+      display: flex;
+      align-items: center;
+      gap: var(--um-space-2);
+      flex-wrap: wrap;
+    }
+
+    .um-toolbar {
+      display: grid;
+      grid-template-columns: minmax(220px, 1fr) auto auto;
+      gap: var(--um-space-3);
+      padding: var(--um-space-3) var(--um-space-6);
+    }
+
+    .um-search,
+    .um-select,
+    .um-input {
+      min-height: 40px;
+      border: 1px solid var(--um-hairline);
+      border-radius: var(--um-radius-sm);
+      background: var(--um-surface);
+      color: var(--um-ink);
+      padding: 0 var(--um-space-3);
+    }
+
+    .um-search {
+      width: 100%;
+      border-radius: var(--um-pill);
+    }
+
+    .um-button,
+    .um-link-button,
+    .um-file-label {
+      min-height: 40px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--um-space-2);
+      border-radius: var(--um-pill);
+      padding: 0 var(--um-space-4);
+      border: 1px solid var(--um-hairline);
+      background: var(--um-canvas);
+      color: var(--um-ink);
+      font-size: 14px;
+      font-weight: 700;
+      text-decoration: none;
+      cursor: pointer;
+      transition: background 140ms ease, border-color 140ms ease, color 140ms ease, transform 140ms ease;
+      white-space: nowrap;
+    }
+
+    .um-button:active,
+    .um-link-button:active,
+    .um-file-label:active {
+      transform: translateY(1px);
+    }
+
+    .um-button-primary {
+      background: var(--um-ink);
+      border-color: var(--um-ink);
+      color: var(--um-canvas);
+    }
+
+    .um-button-primary:active {
+      background: #2c2c34;
+    }
+
+    .um-link-button {
+      color: var(--um-blue);
+    }
+
+    .um-layer-toggles {
+      padding: var(--um-space-1);
+      border: 1px solid var(--um-hairline);
+      border-radius: var(--um-pill);
+      background: var(--um-surface);
+    }
+
+    .um-layer-toggle {
+      min-height: 32px;
+      display: inline-flex;
+      align-items: center;
+      gap: var(--um-space-1);
+      border-radius: var(--um-pill);
+      padding: 0 var(--um-space-2);
+      color: var(--um-muted);
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 140ms ease, color 140ms ease, transform 140ms ease;
+    }
+
+    .um-layer-toggle:has(input:checked) {
+      background: var(--um-canvas);
+      color: var(--um-ink-deep);
+      box-shadow: var(--um-raised);
+    }
+
+    .um-layer-toggle:active {
+      transform: translateY(1px);
+    }
+
+    .um-file-input {
+      position: absolute;
+      inline-size: 1px;
+      block-size: 1px;
+      overflow: hidden;
+      clip: rect(0 0 0 0);
+      white-space: nowrap;
+    }
+
+    .um-main {
+      min-height: 0;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(340px, 380px);
+      gap: var(--um-space-4);
+      padding: var(--um-space-4);
+    }
+
+    .um-map-area,
+    .um-panel {
+      min-width: 0;
+      min-height: 0;
+      border: 1px solid var(--um-hairline);
+      background: var(--um-canvas);
+      box-shadow: var(--um-raised);
+    }
+
+    .um-map-area {
+      position: relative;
+      overflow: hidden;
+      border-radius: var(--um-radius-lg);
+      display: grid;
+      grid-template-rows: auto minmax(360px, 1fr);
+    }
+
+    .um-map-topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--um-space-3);
+      padding: var(--um-space-3) var(--um-space-4);
+      border-bottom: 1px solid var(--um-hairline);
+    }
+
+    #map {
+      min-height: 360px;
+      background: var(--um-surface);
+    }
+
+    .um-map-placeholder {
+      position: absolute;
+      inset: 58px var(--um-space-4) var(--um-space-4);
+      display: grid;
+      place-items: center;
+      padding: var(--um-space-5);
+      border: 1px dashed var(--um-hairline);
+      border-radius: var(--um-radius-md);
+      background: rgba(255, 255, 255, 0.88);
+      pointer-events: none;
+    }
+
+    .um-map-placeholder.is-hidden {
+      display: none;
+    }
+
+    .um-key-card {
+      max-width: 560px;
+      padding: var(--um-space-5);
+      border-radius: var(--um-radius-md);
+      background: var(--um-yellow-soft);
+      border: 1px solid var(--um-yellow);
+      box-shadow: var(--um-modal);
+      pointer-events: auto;
+    }
+
+    .um-map-invalid {
+      position: absolute;
+      left: var(--um-space-4);
+      right: var(--um-space-4);
+      bottom: var(--um-space-4);
+      max-height: 112px;
+      overflow: auto;
+      margin: 0;
+      padding: var(--um-space-3) var(--um-space-4);
+      border: 1px solid var(--um-danger-soft);
+      border-radius: var(--um-radius-md);
+      background: rgba(255, 255, 255, 0.94);
+      color: #600000;
+      box-shadow: var(--um-raised);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .um-popup {
+      max-width: 280px;
+      color: var(--um-ink);
+      font-family: "Pretendard", "Noto Sans KR", "Apple SD Gothic Neo", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    }
+
+    .um-popup strong {
+      display: block;
+      color: var(--um-ink-deep);
+      font-size: 15px;
+      line-height: 1.35;
+    }
+
+    .um-popup p,
+    .um-popup dl {
+      margin: var(--um-space-2) 0 0;
+      color: var(--um-muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .um-popup dl {
+      display: grid;
+      grid-template-columns: max-content minmax(0, 1fr);
+      gap: var(--um-space-1) var(--um-space-2);
+    }
+
+    .um-popup dt {
+      font-weight: 700;
+      color: var(--um-ink);
+    }
+
+    .um-popup dd {
+      margin: 0;
+      word-break: break-word;
+    }
+
+    .um-popup-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--um-space-1);
+      margin-top: var(--um-space-2);
+    }
+
+    .um-popup-chip {
+      display: inline-flex;
+      min-height: 22px;
+      align-items: center;
+      border-radius: var(--um-pill);
+      padding: 0 var(--um-space-2);
+      background: var(--um-surface);
+      color: var(--um-muted);
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .um-popup-chip.type-headquarters { background: #fff4c4; color: #746019; }
+    .um-popup-chip.type-support-office { background: #dde7ff; color: #2a41b6; }
+    .um-popup-chip.type-school { background: var(--um-school); color: #7a2455; }
+    .um-popup-chip.type-library { background: var(--um-library); color: #187574; }
+    .um-popup-chip.type-experience-site { background: var(--um-experience); color: #7a3d00; }
+    .um-popup-chip.type-imported { background: var(--um-imported); color: var(--um-blue); }
+
+    .um-key-card h2 {
+      margin: 0 0 var(--um-space-2);
+      color: var(--um-ink-deep);
+      font-size: 22px;
+      line-height: 1.3;
+    }
+
+    .um-key-card p,
+    .um-note {
+      margin: 0;
+      color: var(--um-muted);
+      font-size: 13px;
+      line-height: 1.55;
+      word-break: keep-all;
+    }
+
+    .um-key-form {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: var(--um-space-2);
+      margin-top: var(--um-space-4);
+    }
+
+    .um-panel {
+      overflow: hidden;
+      border-radius: var(--um-radius-lg);
+      display: grid;
+      grid-template-rows: auto auto minmax(0, 1fr) auto;
+    }
+
+    .um-panel-head,
+    .um-panel-section {
+      padding: var(--um-space-4);
+      border-bottom: 1px solid var(--um-hairline);
+    }
+
+    .um-counts {
+      margin-top: var(--um-space-3);
+    }
+
+    .um-chip,
+    .um-status {
+      display: inline-flex;
+      align-items: center;
+      min-height: 26px;
+      border-radius: var(--um-pill);
+      padding: 0 var(--um-space-2);
+      background: var(--um-surface);
+      color: var(--um-muted);
+      font-size: 12px;
+      font-weight: 700;
+      line-height: 1.35;
+    }
+
+    .um-chip[data-type="school"] { background: var(--um-school); color: #7a2455; }
+    .um-chip[data-type="library"] { background: var(--um-library); color: #187574; }
+    .um-chip[data-type="experience-site"] { background: var(--um-experience); color: #7a3d00; }
+    .um-chip[data-type="imported"] { background: var(--um-imported); color: var(--um-blue); }
+    .um-chip.is-good,
+    .um-status.is-ready { background: #e5fbf3; color: #007a55; }
+    .um-chip.is-warn { background: var(--um-yellow-soft); color: #746019; }
+
+    .um-list {
+      min-height: 0;
+      overflow: auto;
+    }
+
+    .um-row {
+      padding: var(--um-space-4);
+      border-bottom: 1px solid var(--um-hairline);
+      background: var(--um-canvas);
+    }
+
+    .um-row-main strong {
+      display: block;
+      color: var(--um-ink-deep);
+      font-size: 15px;
+      line-height: 1.35;
+    }
+
+    .um-row-main span {
+      display: block;
+      margin-top: var(--um-space-1);
+      color: var(--um-muted);
+      font-size: 13px;
+      line-height: 1.45;
+      word-break: keep-all;
+    }
+
+    .um-row-meta {
+      margin-top: var(--um-space-2);
+    }
+
+    .um-empty,
+    .um-foot {
+      padding: var(--um-space-4);
+      color: var(--um-muted);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .um-side-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: var(--um-space-2);
+      margin-top: var(--um-space-3);
+    }
+
+    .um-stat {
+      min-width: 0;
+      padding: var(--um-space-2);
+      border-radius: var(--um-radius-sm);
+      background: var(--um-surface);
+    }
+
+    .um-stat strong {
+      display: block;
+      color: var(--um-ink-deep);
+      font-size: 18px;
+      line-height: 1.25;
+    }
+
+    .um-stat span {
+      display: block;
+      color: var(--um-muted);
+      font-size: 12px;
+      line-height: 1.35;
+    }
+
+    .um-utility {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: var(--um-space-3);
+      padding: var(--um-space-4);
+      border-top: 1px solid var(--um-hairline);
+      background: var(--um-surface);
+    }
+
+    .um-utility-card {
+      min-width: 0;
+      padding: var(--um-space-3);
+      border: 1px solid var(--um-hairline);
+      border-radius: var(--um-radius-md);
+      background: var(--um-canvas);
+    }
+
+    .um-utility-card h3 {
+      margin: 0 0 var(--um-space-2);
+      font-size: 15px;
+      line-height: 1.35;
+      color: var(--um-ink-deep);
+    }
+
+    .um-utility-card ul {
+      margin: var(--um-space-2) 0 0;
+      padding-left: var(--um-space-4);
+      color: var(--um-muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .um-connection-grid {
+      display: grid;
+      gap: var(--um-space-2);
+    }
+
+    .um-connection-list {
+      display: grid;
+      gap: var(--um-space-2);
+      max-height: 160px;
+      overflow: auto;
+      margin: var(--um-space-2) 0 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .um-connection-list li {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: var(--um-space-2);
+      align-items: center;
+      padding: var(--um-space-2);
+      border: 1px solid var(--um-hairline);
+      border-radius: var(--um-radius-sm);
+      background: var(--um-surface);
+    }
+
+    .um-connection-list strong,
+    .um-connection-list small {
+      display: block;
+      min-width: 0;
+      overflow-wrap: anywhere;
+    }
+
+    @media (max-width: 1100px) {
+      .um-toolbar,
+      .um-main {
+        grid-template-columns: 1fr;
+      }
+
+      .um-main {
+        grid-template-rows: minmax(520px, 58dvh) auto;
+      }
+
+      .um-panel {
+        max-height: none;
+      }
+    }
+
+    @media (max-width: 680px) {
+      .um-shell {
+        grid-template-rows: auto auto auto;
+      }
+
+      .um-header,
+      .um-toolbar,
+      .um-main {
+        padding-inline: var(--um-space-3);
+      }
+
+      .um-header,
+      .um-map-topbar,
+      .um-key-form,
+      .um-utility {
+        grid-template-columns: 1fr;
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .um-header-actions,
+      .um-control-group,
+      .um-layer-toggles,
+      .um-toolbar {
+        align-items: stretch;
+      }
+
+      .um-button,
+      .um-link-button,
+      .um-file-label,
+      .um-select {
+        width: 100%;
+      }
+
+      .um-brand strong {
+        font-size: 18px;
+      }
+
+      .um-map-placeholder {
+        inset: 98px var(--um-space-3) var(--um-space-3);
+      }
+
+      .um-map-invalid {
+        left: var(--um-space-3);
+        right: var(--um-space-3);
+      }
+
+      .um-side-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="um-shell">
+    <header class="um-header">
+      <a class="um-brand" href="index.html" aria-label="인천교육 통합지도 홈">
+        <span class="um-brand-mark" aria-hidden="true">ICE</span>
+        <span>
+          <strong>인천교육 통합지도</strong>
+          <span>학교, 기관, 업로드 행을 한 화면에서 점검합니다.</span>
+        </span>
+      </a>
+      <div class="um-header-actions">
+        <a class="um-link-button" href="schools.html">학교 지도</a>
+        <a class="um-link-button" href="infrastructure.html">체험기관 지도</a>
+        <span id="key-status" class="um-status" aria-live="polite">키 상태 확인 중</span>
+      </div>
+    </header>
+
+    <section class="um-toolbar" aria-label="지도 필터와 데이터 작업">
+      <label>
+        <span class="um-note">검색</span>
+        <input id="search-input" class="um-search" type="search" placeholder="기관명, 주소, 유형, 업로드 필드 검색">
+      </label>
+      <div class="um-control-group" aria-label="필터">
+        <label>
+          <span class="um-note">지원청</span>
+          <select id="office-filter" class="um-select">
+            <option value="all">전체 지원청</option>
+            <option value="main">본청</option>
+            <option value="ganghwa">강화</option>
+            <option value="south">남부</option>
+            <option value="north">북부</option>
+            <option value="east">동부</option>
+            <option value="west">서부</option>
+            <option value="unassigned">미지정</option>
+          </select>
+        </label>
+        <label>
+          <span class="um-note">유형</span>
+          <select id="type-filter" class="um-select">
+            <option value="all">전체 유형</option>
+            <option value="headquarters">본청</option>
+            <option value="support-office">교육지원청</option>
+            <option value="direct-agency">직속기관</option>
+            <option value="library">도서관</option>
+            <option value="experience-site">체험학습장</option>
+            <option value="partner">협력기관</option>
+            <option value="school">학교</option>
+            <option value="imported">가져온 행</option>
+          </select>
+        </label>
+      </div>
+      <div class="um-control-group" aria-label="가져오기와 내보내기">
+        <label class="um-file-label" for="import-file" tabindex="0">CSV/XLSX 가져오기</label>
+        <input id="import-file" class="um-file-input" type="file" accept=".csv,.tsv,.txt,.xlsx,.xls" tabindex="-1">
+        <a class="um-button" href="data/institutions.sample.csv" download>템플릿 다운로드</a>
+        <button id="export-data" class="um-button um-button-primary" type="button">데이터 내보내기</button>
+      </div>
+    </section>
+
+    <main class="um-main">
+      <section class="um-map-area" aria-label="통합 지도 작업 영역">
+        <div class="um-map-topbar">
+          <div class="um-map-status">
+            <span id="map-key-badge" class="um-status">지도 상태 확인 중</span>
+            <span id="map-state-text" class="um-note" aria-live="polite">기본 데이터와 지도 상태를 확인합니다.</span>
+          </div>
+          <div class="um-control-group" aria-label="지도 레이어 기능">
+            <fieldset class="um-layer-toggles" aria-label="마커 레이어 표시">
+              <legend class="um-file-input">마커 레이어 표시</legend>
+              <label class="um-layer-toggle"><input data-marker-layer type="checkbox" value="school" checked>학교</label>
+              <label class="um-layer-toggle"><input data-marker-layer type="checkbox" value="institution" checked>기관</label>
+              <label class="um-layer-toggle"><input data-marker-layer type="checkbox" value="imported" checked>가져온 행</label>
+            </fieldset>
+            <span id="map-layer-badge" class="um-chip is-warn">키 저장 후 마커 표시</span>
+            <button id="fit-map-bounds" class="um-button" type="button">마커 범위 맞춤</button>
+            <span class="um-chip">연결선 사용 가능</span>
+          </div>
+        </div>
+        <div id="map" role="application" aria-label="카카오 지도 캔버스"></div>
+        <ul id="map-invalid-list" class="um-map-invalid" aria-label="좌표 오류로 마커를 만들지 않은 행" aria-live="polite">
+          <li>지도 필터가 적용되면 좌표 오류 행을 여기서 확인합니다.</li>
+        </ul>
+        <div id="map-placeholder" class="um-map-placeholder">
+          <section class="um-key-card" aria-labelledby="key-card-title">
+            <h2 id="key-card-title">카카오 JavaScript 키가 없어도 이 화면은 사용할 수 있습니다.</h2>
+            <p>
+              검색, 필터, 업로드 미리보기, 템플릿 다운로드, 내보내기, 연결선 준비 컨트롤은 계속 동작합니다.
+              실제 지도 타일은 도메인 제한을 설정한 JavaScript 키를 저장한 뒤 초기화됩니다.
+              저장한 키와 업로드 데이터는 이 브라우저의 localStorage에 보관되며 삭제하거나 JSON으로 내보낼 수 있습니다.
+              REST 키는 정적 화면에 입력하지 않습니다.
+            </p>
+            <div class="um-key-form">
+              <label>
+                <span class="um-note">JavaScript 키</span>
+                <input id="kakao-key-input" class="um-input" type="text" autocomplete="off" placeholder="카카오 Developers JavaScript 키">
+              </label>
+              <button id="save-kakao-key" class="um-button um-button-primary" type="button">키 저장</button>
+            </div>
+            <p id="key-message" class="um-note" aria-live="polite"></p>
+          </section>
+        </div>
+      </section>
+
+      <aside class="um-panel" aria-label="기관 목록과 작업 패널">
+        <section class="um-panel-head">
+          <div class="um-panel-title">
+            <strong>기관 목록</strong>
+            <span id="list-summary" aria-live="polite">데이터를 불러오는 중입니다.</span>
+          </div>
+          <div class="um-counts" aria-label="기관 통계">
+            <span class="um-chip">전체 <strong id="count-total">0</strong></span>
+            <span class="um-chip">표시 <strong id="count-visible">0</strong></span>
+            <span class="um-chip">업로드 <strong id="count-imported">0</strong></span>
+            <span class="um-chip">좌표 <strong id="count-mappable">0</strong></span>
+          </div>
+        </section>
+
+        <section class="um-panel-section" aria-label="가져오기 미리보기">
+          <strong>가져오기 미리보기</strong>
+          <p id="import-message" class="um-note">CSV 또는 XLSX를 선택하면 유효 행과 실패 행을 여기서 확인합니다.</p>
+          <div class="um-side-grid" aria-label="가져오기 집계">
+            <div class="um-stat"><strong id="import-valid">0</strong><span>유효</span></div>
+            <div class="um-stat"><strong id="import-skipped">0</strong><span>제외</span></div>
+            <div class="um-stat"><strong id="import-duplicate">0</strong><span>중복</span></div>
+            <div class="um-stat"><strong id="import-geocoded">0</strong><span>좌표 보유</span></div>
+          </div>
+          <ul id="import-failed-list">
+            <li>실패 행 없음</li>
+          </ul>
+        </section>
+
+        <section id="institution-list" class="um-list" aria-label="필터링된 기관 목록" tabindex="-1"></section>
+
+        <section class="um-utility" aria-label="연결선과 저장소 상태">
+          <div class="um-utility-card">
+            <h3>연결선 컨트롤</h3>
+            <div class="um-connection-grid">
+              <label class="um-note" for="connection-from">시작 기관</label>
+              <select id="connection-from" class="um-select"></select>
+              <label class="um-note" for="connection-to">도착 기관</label>
+              <select id="connection-to" class="um-select"></select>
+              <label class="um-note" for="connection-color">색상</label>
+              <select id="connection-color" class="um-select">
+                <option value="red">빨강</option>
+                <option value="blue">파랑</option>
+                <option value="yellow">노랑</option>
+                <option value="green">초록</option>
+                <option value="black">검정</option>
+              </select>
+              <label class="um-note" for="connection-stroke">선 형태</label>
+              <select id="connection-stroke" class="um-select">
+                <option value="solid">실선</option>
+                <option value="dashed">파선</option>
+                <option value="dotted">점선</option>
+              </select>
+              <label class="um-note" for="connection-label">라벨</label>
+              <input id="connection-label" class="um-input" type="text" maxlength="80" placeholder="연결 설명">
+              <p id="connection-distance" class="um-note" aria-live="polite">시작과 도착 기관을 선택하면 직선거리를 표시합니다.</p>
+              <button id="connection-create" class="um-button um-button-primary" type="button">연결선 저장</button>
+            </div>
+            <ul id="connection-list" class="um-connection-list" aria-label="저장된 연결선 목록"></ul>
+            <button id="connection-export" class="um-button" type="button">연결선 JSON 내보내기</button>
+            <button id="connection-import-button" class="um-button" type="button">연결선 JSON 가져오기</button>
+            <input id="connection-import-file" class="um-file-input" type="file" accept="application/json,.json" tabindex="-1">
+            <p id="connection-message" class="um-note" aria-live="polite">연결 기록은 로컬에 저장됩니다. 지도 선은 카카오 지도가 준비되면 표시됩니다.</p>
+          </div>
+          <div class="um-utility-card">
+            <h3>저장소 경고</h3>
+            <ul id="warning-list">
+              <li>저장소 상태 확인 중</li>
+            </ul>
+          </div>
+        </section>
+      </aside>
+    </main>
+  </div>
+
+  <script src="vendor/xlsx.full.min.js" defer></script>
+  <script type="module" src="js/unified-map-app.js"></script>
+</body>
+</html>
