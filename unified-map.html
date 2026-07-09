@@ -462,9 +462,38 @@
     }
 
     .um-row {
+      position: relative;
       padding: var(--um-space-4);
+      padding-right: 44px;
       border-bottom: 1px solid var(--um-hairline);
       background: var(--um-canvas);
+    }
+
+    .um-fav-toggle {
+      position: absolute;
+      top: var(--um-space-3);
+      right: var(--um-space-3);
+      border: 0;
+      background: none;
+      padding: 4px;
+      font-size: 18px;
+      line-height: 1;
+      color: var(--um-hairline);
+      cursor: pointer;
+    }
+
+    .um-fav-toggle.is-active {
+      color: #f59e0b;
+    }
+
+    .um-fav-toggle:focus-visible {
+      outline: 2px solid var(--um-ink-deep);
+      outline-offset: 2px;
+    }
+
+    .um-chip.is-designation {
+      background: #fef3c7;
+      color: #92400e;
     }
 
     .um-row-main strong {
@@ -712,6 +741,10 @@
         <input id="import-file" class="um-file-input" type="file" accept=".csv,.tsv,.txt,.xlsx,.xls" tabindex="-1">
         <a class="um-button" href="data/institutions.sample.csv" download>템플릿 다운로드</a>
         <button id="export-data" class="um-button um-button-primary" type="button">데이터 내보내기</button>
+        <label class="um-layer-toggle"><input id="favorites-only" type="checkbox">관심 기관만 보기</label>
+        <button id="export-favorites" class="um-button" type="button">관심 내보내기</button>
+        <label class="um-file-label" for="import-favorites-file" tabindex="0">관심 가져오기</label>
+        <input id="import-favorites-file" class="um-file-input" type="file" accept=".json" tabindex="-1">
       </div>
     </section>
 

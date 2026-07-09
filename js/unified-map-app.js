@@ -1,5 +1,6 @@
 import { INSTITUTION_TYPE_LABELS, OFFICE_LABELS } from "./constants.js";
 import { createConnectionManager } from "./connection-layer.js";
+import { createFavoritesStore } from "./favorites.js";
 import { buildImportPreviewFromArrayBuffer, buildImportPreviewFromCsv } from "./importer.js";
 import { exportDataset, filterInstitutions, loadAllInstitutions, loadConnections, mergeImportedInstitutions } from "./institution-repository.js";
 import { createInstitutionMapLayer, filterRowsByMarkerLayers } from "./map-layers.js";
@@ -13,7 +14,8 @@ const state = {
   institutions: [],
   importedInstitutions: [],
   warnings: [],
-  filters: { search: "", office: "all", type: "all" }, markerLayers: { school: true, institution: true, imported: true },
+  filters: { search: "", office: "all", type: "all" }, favoritesOnly: false, markerLayers: { school: true, institution: true, imported: true },
+  favorites: null,
   map: null, mapLayer: null, connectionManager: null,
   mapInitRequested: false,
   visibleRows: [],
@@ -47,15 +49,14 @@ const downloadJson = (filename, data) => {
 
 const keyStatus = () => text(localStorage.getItem(KAKAO_KEY_STORAGE));
 
-const maskKey = (key) => (key ? `${key.slice(0, 8)}••••${key.slice(-4)}` : "미등록");
-
 const renderKeyState = (message = "") => {
   const key = keyStatus();
   const status = $("#key-status");
   const badge = $("#map-key-badge");
   const input = $("#kakao-key-input");
   if (status) {
-    status.textContent = key ? `JavaScript 키 저장됨 (${maskKey(key)})` : "카카오 JavaScript 키 미등록";
+    // 키 값은 일부라도 화면에 노출하지 않는다 — 저장 여부만 표시.
+    status.textContent = key ? "JavaScript 키 저장됨" : "카카오 JavaScript 키 미등록";
     status.classList.toggle("is-ready", Boolean(key));
   }
   if (badge) badge.textContent = key ? "지도 SDK 대기" : "키 필요";
@@ -94,6 +95,10 @@ const syncMarkerLayer = (rows) => {
 
 const rowTemplate = (row) => `
   <article class="um-row">
+    <button type="button" class="um-fav-toggle ${state.favorites?.has(row.id) ? "is-active" : ""}"
+      data-favorite-id="${escapeHtml(row.id)}"
+      aria-pressed="${state.favorites?.has(row.id) ? "true" : "false"}"
+      aria-label="${escapeHtml(row.name)} 관심 기관 ${state.favorites?.has(row.id) ? "해제" : "등록"}">★</button>
     <div class="um-row-main">
       <strong>${escapeHtml(row.name)}</strong>
       <span>${escapeHtml(row.address || "주소 없음")}</span>
@@ -101,13 +106,17 @@ const rowTemplate = (row) => `
     <div class="um-row-meta">
       <span class="um-chip" data-type="${escapeHtml(row.type)}">${escapeHtml(INSTITUTION_TYPE_LABELS[row.type] ?? row.type)}</span>
       <span class="um-chip">${escapeHtml(OFFICE_LABELS[row.office] ?? row.office)}</span>
+      ${text(row.designation) ? `<span class="um-chip is-designation">${escapeHtml(row.designation)}</span>` : ""}
       <span class="um-chip ${hasCoordinates(row) ? "is-good" : "is-warn"}">${hasCoordinates(row) ? "좌표 있음" : "지오코딩 대기"}</span>
     </div>
   </article>
 `;
 
 const renderRows = () => {
-  const rows = filterInstitutions(state.institutions, state.filters);
+  let rows = filterInstitutions(state.institutions, state.filters);
+  if (state.favoritesOnly && state.favorites) {
+    rows = rows.filter((row) => state.favorites.has(row.id));
+  }
   renderCounts(rows);
   syncMarkerLayer(rows);
   const list = $("#institution-list");
@@ -230,7 +239,30 @@ const bindEvents = () => {
     state.filters.type = event.target.value;
     renderRows();
   });
-  document.querySelectorAll("[data-marker-layer]").forEach((input) => input.addEventListener("change", (event) => { state.markerLayers[event.target.value] = event.target.checked; syncMarkerLayer(filterInstitutions(state.institutions, state.filters)); }));
+  document.querySelectorAll("[data-marker-layer]").forEach((input) => input.addEventListener("change", (event) => { state.markerLayers[event.target.value] = event.target.checked; renderRows(); }));
+  $("#favorites-only")?.addEventListener("change", (event) => {
+    state.favoritesOnly = event.target.checked;
+    renderRows();
+  });
+  $("#institution-list")?.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-favorite-id]");
+    if (!button || !state.favorites) return;
+    state.favorites.toggle(button.dataset.favoriteId);
+    renderRows();
+  });
+  $("#export-favorites")?.addEventListener("click", () => {
+    downloadJson("incheon-education-map-favorites.json", JSON.parse(state.favorites?.exportJson() ?? "{}"));
+  });
+  $("#import-favorites-file")?.addEventListener("change", async (event) => {
+    const file = event.target.files?.[0];
+    if (!file || !state.favorites) return;
+    const result = state.favorites.importJson(await file.text());
+    setText("#import-message", result.ok
+      ? `관심 기관 ${result.added}개를 가져왔습니다.`
+      : "관심 기관 파일 형식이 올바르지 않습니다.");
+    event.target.value = "";
+    renderRows();
+  });
   $("#import-file")?.addEventListener("change", (event) => handleImport(event.target.files?.[0]));
   $(".um-file-label")?.addEventListener("keydown", (event) => {
     if (event.key !== "Enter" && event.key !== " ") return;
@@ -258,6 +290,7 @@ const bindEvents = () => {
 };
 
 const init = async () => {
+  state.favorites = createFavoritesStore({ storage: localStorage });
   bindEvents();
   state.connectionManager = createConnectionManager({ storage: localStorage });
   state.connectionManager.bindControls(document);

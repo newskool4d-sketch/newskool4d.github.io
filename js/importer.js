@@ -4,12 +4,20 @@ const HEADER_ALIASES = Object.freeze({
   id: ["id", "식별자", "고유번호", "연번", "번호"],
   name: ["name", "school", "institution", "facility", "schoolname", "institutionname", "facilityname", "학교명", "기관명", "시설명", "명칭", "이름"],
   address: ["address", "addr", "location", "주소", "소재지", "위치", "도로명주소"],
-  office: ["office", "regionaloffice", "관할지원청", "지원청", "관할", "교육지원청"],
+  office: ["office", "regionaloffice", "관할지원청", "지원청", "관할", "교육지원청", "담당교육지원청", "담당지원청"],
   type: ["type", "category", "기관유형", "유형", "구분", "분류"],
   level: ["level", "schoollevel", "학교급", "급별", "과정"],
   lat: ["lat", "latitude", "y", "위도"],
   lng: ["lng", "lon", "long", "longitude", "x", "경도"],
+  designation: ["designation", "지정교", "지정교유형", "학교성격", "성격", "지정구분"],
 });
+
+// "연구학교;선도학교" / "연구학교, 선도학교" 등 다중 지정을 "연구학교; 선도학교"로 통일한다.
+const normalizeDesignation = (value) => text(value)
+  .split(/[;,/·]/)
+  .map((item) => item.trim())
+  .filter(Boolean)
+  .join("; ");
 
 const text = (value) => String(value ?? "").trim();
 
@@ -184,6 +192,10 @@ const makeCandidate = ({ headers, row, rowNumber, fields, custom }) => {
   if (lng !== undefined) {
     candidate.lng = lng;
   }
+  const designation = normalizeDesignation(valueAt(row, fields.designation));
+  if (designation) {
+    candidate.designation = designation;
+  }
   return candidate;
 };
 
@@ -278,4 +290,4 @@ export const buildImportPreviewFromArrayBuffer = (arrayBuffer, options = {}) => 
   return buildImportPreviewFromWorkbook(sheetjs.read(arrayBuffer, { type: "array" }), { ...options, sheetjs });
 };
 
-export const canonicalImportFields = Object.freeze(["id", "name", "address", "office", "type", "level", "lat", "lng"]);
+export const canonicalImportFields = Object.freeze(["id", "name", "address", "office", "type", "level", "designation", "lat", "lng"]);

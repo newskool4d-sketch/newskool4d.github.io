@@ -200,7 +200,7 @@ const matchesSearch = (institution, query) => {
     return true;
   }
   const customText = Object.values(institution.customFields ?? {}).map(text).join(" ");
-  return [institution.name, institution.address, institution.office, institution.type, institution.level, customText]
+  return [institution.name, institution.address, institution.office, institution.type, institution.level, institution.designation, customText]
     .some((value) => lowerText(value).includes(normalizedQuery));
 };
 

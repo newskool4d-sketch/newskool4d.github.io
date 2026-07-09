@@ -274,3 +274,12 @@ test("backs up old values and reports quota failures when destructive replacemen
   );
   assert.ok(result.warnings.some((warning) => warning.code === "quota_exceeded"));
 });
+
+test("search matches designation values such as 연구학교", () => {
+  const rows = [
+    { id: "a", name: "인천지정초", designation: "연구학교; 선도학교" },
+    { id: "b", name: "인천일반초" },
+  ];
+  const filtered = filterInstitutions(rows, { search: "연구학교" });
+  assert.deepEqual(filtered.map((row) => row.id), ["a"]);
+});

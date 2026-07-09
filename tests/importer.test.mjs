@@ -142,3 +142,39 @@ test("parses CRLF CSV without naive comma splitting", () => {
     ["쉼표,기관", "인천광역시 남동구 정각로 9"],
   ]);
 });
+
+test("maps designation headers (지정교유형) and normalizes multi-value designations", () => {
+  // Given: an upload that tags schools as 연구학교/선도학교 via the unified template header.
+  const csv = [
+    "학교급,학교명,담당교육지원청,주소,지정교유형",
+    "초,인천지정초등학교,동부,인천광역시 남동구 인주대로 1,연구학교;선도학교",
+    "중,인천일반중학교,남부,인천광역시 중구 차이나타운로 1,",
+  ].join("\n");
+
+  const preview = buildImportPreviewFromCsv(csv);
+
+  assert.equal(preview.counts.valid, 2);
+  assert.equal(preview.rows[0].designation, "연구학교; 선도학교");
+  assert.equal(preview.rows[0].level, "초");
+  assert.equal(preview.rows[0].office, "east");
+  assert.equal(preview.rows[1].designation, undefined);
+});
+
+test("designation header aliases resolve to the designation field", () => {
+  const { fields } = inferHeaderMap(["학교명", "주소", "지정교", "학교성격"]);
+  assert.equal(fields.name, 0);
+  assert.equal(fields.address, 1);
+  assert.equal(fields.designation, 2);
+});
+
+test("shipped sample template imports with zero skipped rows", async () => {
+  const { readFile } = await import("node:fs/promises");
+  const csv = await readFile(new URL("../data/institutions.sample.csv", import.meta.url), "utf8");
+  const preview = buildImportPreviewFromCsv(csv);
+  assert.equal(preview.counts.skipped, 0);
+  assert.equal(preview.counts.valid, 4);
+  const cheongna = preview.rows.find((row) => row.name === "인천청라초등학교");
+  assert.equal(cheongna.designation, "연구학교; 선도학교");
+  assert.equal(cheongna.office, "west");
+  assert.equal(cheongna.level, "elem");
+});

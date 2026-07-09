@@ -23,3 +23,6 @@ jobs:
 
       - name: Sensitive-file gate
         run: node tools/check-sensitive.mjs
+
+      - name: Coordinate-district validation
+        run: npm run validate:data

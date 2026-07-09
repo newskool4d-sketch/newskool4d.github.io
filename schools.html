@@ -245,6 +245,11 @@
               <span class="custom-checkbox"></span>
               <span>대안학교</span>
             </label>
+            <label class="checkbox-container" style="grid-column: 1 / -1;">
+              <input type="checkbox" id="chk-sch-fav" data-action="render-school-list">
+              <span class="custom-checkbox"></span>
+              <span>⭐ 관심 학교만 보기</span>
+            </label>
           </div>
         </div>
 
@@ -294,15 +299,34 @@
 
   <script src="shared.js"></script>
   <script>
+    // 관심 학교 저장 — js/favorites.js와 같은 localStorage 키·형식을 공유해 통합지도와 상호 인식된다.
+    const FAVORITES_KEY = "incheon_edu_favorites_v1";
+    const favoriteIds = (() => {
+      try {
+        const parsed = JSON.parse(localStorage.getItem(FAVORITES_KEY) ?? "null");
+        return new Set(parsed && parsed.version === 1 && Array.isArray(parsed.ids) ? parsed.ids : []);
+      } catch {
+        return new Set();
+      }
+    })();
+
+    function toggleFavorite(id) {
+      if (favoriteIds.has(id)) favoriteIds.delete(id);
+      else favoriteIds.add(id);
+      try {
+        localStorage.setItem(FAVORITES_KEY, JSON.stringify({ version: 1, ids: [...favoriteIds] }));
+      } catch (e) { /* 저장 실패 시에도 세션 내 동작 유지 */ }
+    }
+
     // 1. 교육 기관 행정 대분류 프리셋 (본청 추가!)
-    // lat/lng: 카카오 Geocoder로 사전 변환한 좌표 — 진입 시 API 호출 6회 절약
+    // 주소·lat/lng 정본은 data/institutions.json — 수정 시 반드시 함께 갱신 (tests/office-data.test.mjs가 대조)
     const OFFICE_PRESETS = [
-      { id: "off-main",    code: "main",    name: "인천광역시교육청 본청 (중등·대안·특수)",    address: "인천광역시 남동구 정각로 9",           lat: 37.4562, lng: 126.7052, color: "#FEE500", badgeClass: "office-main",    badgeName: "본청" },
-      { id: "off-ganghwa", code: "ganghwa", name: "인천광역시강화교육지원청 (초등·중등)", address: "인천광역시 강화군 강화읍 충렬사로 29",   lat: 37.7463, lng: 126.4880, color: "#f59e0b", badgeClass: "office-ganghwa", badgeName: "강화" },
-      { id: "off-south",   code: "south",   name: "인천광역시남부교육지원청 (초등·중등)", address: "인천광역시 미추홀구 독배로 452",          lat: 37.4623, lng: 126.6548, color: "#ef4444", badgeClass: "office-south",   badgeName: "남부" },
-      { id: "off-north",   code: "north",   name: "인천광역시북부교육지원청 (초등·중등)", address: "인천광역시 부평구 부평대로 179",          lat: 37.5072, lng: 126.7224, color: "#3b82f6", badgeClass: "office-north",   badgeName: "북부" },
-      { id: "off-east",    code: "east",    name: "인천광역시동부교육지원청 (초등·중등)", address: "인천광역시 남동구 인주대로 820",          lat: 37.4332, lng: 126.7212, color: "#10b981", badgeClass: "office-east",    badgeName: "동부" },
-      { id: "off-west",    code: "west",    name: "인천광역시서부교육지원청 (초등·중등)", address: "인천광역시 서구 서곶로 307",             lat: 37.5518, lng: 126.6775, color: "#8b5cf6", badgeClass: "office-west",    badgeName: "서부" }
+      { id: "off-main",    code: "main",    name: "인천광역시교육청 본청 (중등·대안·특수)",    address: "인천광역시 남동구 정각로 9",             lat: 37.4562754, lng: 126.703048,  color: "#FEE500", badgeClass: "office-main",    badgeName: "본청" },
+      { id: "off-ganghwa", code: "ganghwa", name: "인천광역시강화교육지원청 (초등·중등)", address: "인천광역시 강화군 불은면 중앙로 607",     lat: 37.7081577, lng: 126.4494795, color: "#f59e0b", badgeClass: "office-ganghwa", badgeName: "강화" },
+      { id: "off-south",   code: "south",   name: "인천광역시남부교육지원청 (초등·중등)", address: "인천광역시 중구 차이나타운로51번길 45",   lat: 37.4748175, lng: 126.6213125, color: "#ef4444", badgeClass: "office-south",   badgeName: "남부" },
+      { id: "off-north",   code: "north",   name: "인천광역시북부교육지원청 (초등·중등)", address: "인천광역시 부평구 부평문화로53번길 35",   lat: 37.4957395, lng: 126.7212777, color: "#3b82f6", badgeClass: "office-north",   badgeName: "북부" },
+      { id: "off-east",    code: "east",    name: "인천광역시동부교육지원청 (초등·중등)", address: "인천광역시 남동구 인주대로 923",          lat: 37.4485429, lng: 126.7400125, color: "#10b981", badgeClass: "office-east",    badgeName: "동부" },
+      { id: "off-west",    code: "west",    name: "인천광역시서부교육지원청 (초등·중등)", address: "인천광역시 서구 경명대로 713",            lat: 37.552612,  lng: 126.687904,  color: "#8b5cf6", badgeClass: "office-west",    badgeName: "서부" }
     ];
 
     // 2. 대표 학교 프리셋 데이터베이스 (본청 행정 배정 논리 완벽 튜닝!)
@@ -475,6 +499,15 @@
       });
 
       listDom.addEventListener("click", event => {
+        const favButton = event.target.closest("[data-action='toggle-favorite']");
+        if (favButton) {
+          const card = favButton.closest(".school-card");
+          if (!card) return;
+          toggleFavorite(card.dataset.schoolId);
+          renderSchoolsList();
+          return;
+        }
+
         const saveButton = event.target.closest("[data-action='save-supervisor']");
         if (saveButton) {
           const card = saveButton.closest(".school-card");
@@ -791,47 +824,50 @@
       const geocoder = new kakao.maps.services.Geocoder();
       const geoFailedNames = [];
 
+      const finishOne = () => {
+        pendingGeocodes--;
+        if (pendingGeocodes === 0) {
+          renderSchoolsList();
+          fitSchoolsView();
+          if (geoFailedNames.length > 0) {
+            showSchoolSearchStatus(`주소 변환 실패 ${geoFailedNames.length}건: ${geoFailedNames.join(", ")} — 해당 학교는 지도에 표시되지 않습니다.`, "error");
+          }
+        }
+      };
+
+      const addSchoolMarker = (sch, coords) => {
+        const marker = new kakao.maps.Marker({
+          position: coords,
+          map: mapInstance
+        });
+        kakao.maps.event.addListener(marker, 'click', () => {
+          focusSchool(sch.id);
+        });
+        schoolMarkers[sch.id] = { marker: marker, coords: coords, data: sch };
+      };
+
       officeSchools.forEach(sch => {
         if (schoolMarkers[sch.id]) {
           schoolMarkers[sch.id].marker.setMap(mapInstance);
-          pendingGeocodes--;
-          if (pendingGeocodes === 0) {
-            renderSchoolsList();
-            fitSchoolsView();
-          }
+          finishOne();
+          return;
+        }
+
+        // 사전계산 좌표(data/schools.json)가 있으면 지오코딩 없이 즉시 표시.
+        // 수백 건 동시 addressSearch는 카카오 rate limit에 걸려 마커가 누락·오배치된다.
+        if (Number.isFinite(sch.lat) && Number.isFinite(sch.lng)) {
+          addSchoolMarker(sch, new kakao.maps.LatLng(sch.lat, sch.lng));
+          finishOne();
           return;
         }
 
         geocoder.addressSearch(sch.address, (result, status) => {
           if (status === kakao.maps.services.Status.OK) {
-            const coords = new kakao.maps.LatLng(result[0].y, result[0].x);
-
-            const marker = new kakao.maps.Marker({
-              position: coords,
-              map: mapInstance
-            });
-
-            kakao.maps.event.addListener(marker, 'click', () => {
-              focusSchool(sch.id);
-            });
-
-            schoolMarkers[sch.id] = {
-              marker: marker,
-              coords: coords,
-              data: sch
-            };
+            addSchoolMarker(sch, new kakao.maps.LatLng(result[0].y, result[0].x));
           } else {
             geoFailedNames.push(sch.name);
           }
-
-          pendingGeocodes--;
-          if (pendingGeocodes === 0) {
-            renderSchoolsList();
-            fitSchoolsView();
-            if (geoFailedNames.length > 0) {
-              showSchoolSearchStatus(`주소 변환 실패 ${geoFailedNames.length}건: ${geoFailedNames.join(", ")} — 해당 학교는 지도에 표시되지 않습니다.`, "error");
-            }
-          }
+          finishOne();
         });
       });
     }
@@ -858,12 +894,15 @@
       const allSchools = [...BASE_SCHOOLS, ...customSchools];
       const officeSchools = allSchools.filter(s => s.office === selectedOffice);
 
+      const favoritesOnly = document.getElementById("chk-sch-fav")?.checked;
+
       const filteredSchools = officeSchools.filter(sch => {
         const levelMatch = filterLevels[sch.level];
         const currentSvName = schoolSupervisors[sch.id] || "";
         const supervisorMatch = !selectedSupervisor || (currentSvName === selectedSupervisor);
+        const favoriteMatch = !favoritesOnly || favoriteIds.has(sch.id);
 
-        return levelMatch && supervisorMatch;
+        return levelMatch && supervisorMatch && favoriteMatch;
       });
 
       // 3. 카운터 개수 업데이트
@@ -917,10 +956,14 @@
         card.tabIndex = 0;
         card.setAttribute("role", "button");
         
+        const isFavorite = favoriteIds.has(sch.id);
         card.innerHTML = `
           <div class="school-name">
             <span>${escapeHtml(sch.name)}</span>
             <span class="school-level-badge">${escapeHtml(getSchoolLevelLabel(sch.level))}</span>
+            <button type="button" class="fav-star${isFavorite ? " is-active" : ""}" data-action="toggle-favorite"
+              aria-pressed="${isFavorite}" aria-label="${escapeHtml(sch.name)} 관심 학교 ${isFavorite ? "해제" : "등록"}"
+              style="margin-left:auto;border:0;background:none;cursor:pointer;font-size:16px;line-height:1;color:${isFavorite ? "#f59e0b" : "var(--border-color)"};">★</button>
           </div>
           <div class="school-meta">
             📍 ${escapeHtml(sch.address)}

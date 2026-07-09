@@ -6,6 +6,7 @@
   "scripts": {
     "check": "node tools/check-syntax.mjs",
     "test": "node --test \"tests/*.test.mjs\"",
+    "validate:data": "node tools/validate-coordinates.mjs",
     "serve": "node tools/serve-static.mjs"
   }
 }
