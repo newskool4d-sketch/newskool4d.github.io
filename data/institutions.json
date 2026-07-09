@@ -150,8 +150,8 @@
     "office": "main",
     "officeSource": "explicit",
     "address": "인천광역시 남동구 정각로 9",
-    "lat": 37.4562,
-    "lng": 126.7052,
+    "lat": 37.4557074,
+    "lng": 126.7024958,
     "phone": "032-627-8390",
     "url": "https://lib.ice.go.kr/jungang"
   },
@@ -174,8 +174,8 @@
     "office": "ganghwa",
     "officeSource": "explicit",
     "address": "인천광역시 강화군 하점면 강화대로 994-19",
-    "lat": 37.7746,
-    "lng": 126.4359,
+    "lat": 37.7737103,
+    "lng": 126.4353383,
     "phone": "032-930-1500",
     "url": "https://www.ganghwa.go.kr/open_content/museum/"
   },
