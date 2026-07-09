@@ -228,18 +228,6 @@
     "lng": 126.4547784
   },
   {
-    "id": "partner-oil",
-    "category": "partner",
-    "region": "ganghwa",
-    "name": "아트팩토리 참기름 (사설 협업관)",
-    "address": "인천광역시 강화군 길상면 까치골길 109",
-    "tel": "032-937-3310",
-    "url": "http://www.charmgiroom.com",
-    "desc": "학생교육원과의 활발한 연계 협약 및 협력을 맺고 있는 사설 문화예술 체험장으로, 다채로운 미디어아트 감상 및 점토, 시각 창작 놀이를 청소년 단체 대상으로 서비스합니다.",
-    "lat": 37.6677834,
-    "lng": 126.4801996
-  },
-  {
     "id": "lib-bukgu",
     "category": "library",
     "region": "incheon-city",
