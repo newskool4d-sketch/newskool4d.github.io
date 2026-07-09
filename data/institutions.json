@@ -85,6 +85,65 @@
     "url": "https://aice.ice.go.kr"
   },
   {
+    "id": "direct-training",
+    "name": "인천광역시교육청 교육연수원",
+    "type": "direct-agency",
+    "office": "main",
+    "officeSource": "explicit",
+    "address": "인천광역시 중구 영종대로277번길 74-60",
+    "lat": 37.4950588,
+    "lng": 126.5104882,
+    "phone": "032-745-0147",
+    "url": "https://www.ieti.or.kr"
+  },
+  {
+    "id": "direct-earlychild",
+    "name": "인천광역시교육청 유아교육진흥원",
+    "type": "direct-agency",
+    "office": "main",
+    "officeSource": "explicit",
+    "address": "인천광역시 서구 서곶로 670",
+    "lat": 37.5808607,
+    "lng": 126.6773268,
+    "phone": "032-422-7193",
+    "url": "https://child.ice.go.kr"
+  },
+  {
+    "id": "direct-staff-retreat",
+    "name": "인천광역시교육청 교직원수련원",
+    "type": "direct-agency",
+    "office": "main",
+    "officeSource": "explicit",
+    "address": "인천광역시 중구 용유서로 358",
+    "lat": 37.4530358,
+    "lng": 126.3747002,
+    "phone": "032-627-1198",
+    "url": "https://isptc.ice.go.kr"
+  },
+  {
+    "id": "direct-eastasia",
+    "name": "인천광역시교육청 동아시아국제교육원",
+    "type": "direct-agency",
+    "office": "main",
+    "officeSource": "explicit",
+    "address": "인천광역시 중구 영종대로277번길 118",
+    "lat": 37.4977289,
+    "lng": 126.5095208,
+    "phone": "032-745-0258",
+    "url": "https://www.iegi.go.kr"
+  },
+  {
+    "id": "direct-school-support",
+    "name": "인천광역시교육청 학교지원단",
+    "type": "direct-agency",
+    "office": "main",
+    "officeSource": "explicit",
+    "address": "인천광역시 서구 북항로32번길 29-10",
+    "lat": 37.5128689,
+    "lng": 126.6449014,
+    "url": "https://edus.ice.go.kr"
+  },
+  {
     "id": "lib-jungang",
     "name": "인천광역시교육청 중앙도서관",
     "type": "library",
@@ -103,8 +162,8 @@
     "office": "ganghwa",
     "officeSource": "explicit",
     "address": "인천광역시 강화군 화도면 해안남로 2463",
-    "lat": 37.6082,
-    "lng": 126.4663,
+    "lat": 37.6261355,
+    "lng": 126.3808617,
     "phone": "032-930-9300",
     "url": "https://isec.ice.go.kr"
   },
