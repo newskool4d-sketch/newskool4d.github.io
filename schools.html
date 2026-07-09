@@ -243,7 +243,22 @@
             <label class="checkbox-container">
               <input type="checkbox" id="chk-sch-alt" checked data-action="render-school-list">
               <span class="custom-checkbox"></span>
-              <span>대안학교</span>
+              <span>각종학교</span>
+            </label>
+            <label class="checkbox-container">
+              <input type="checkbox" id="chk-sch-foreign" checked data-action="render-school-list">
+              <span class="custom-checkbox"></span>
+              <span>외국교육기관</span>
+            </label>
+            <label class="checkbox-container">
+              <input type="checkbox" id="chk-sch-broadcast" checked data-action="render-school-list">
+              <span class="custom-checkbox"></span>
+              <span>방송통신중고</span>
+            </label>
+            <label class="checkbox-container">
+              <input type="checkbox" id="chk-sch-lifelong" checked data-action="render-school-list">
+              <span class="custom-checkbox"></span>
+              <span>학력인정평생</span>
             </label>
             <label class="checkbox-container" style="grid-column: 1 / -1;">
               <input type="checkbox" id="chk-sch-fav" data-action="render-school-list">
@@ -388,7 +403,10 @@
       mid: "중학교",
       high: "고등학교",
       special: "특수학교",
-      alt: "대안학교"
+      alt: "각종학교",
+      foreign: "외국교육기관",
+      broadcast: "방송통신중고",
+      lifelong: "학력인정평생"
     };
     const CUSTOM_SCHOOL_LIMIT = 200;
     const validSchoolOffices = new Set(OFFICE_PRESETS.map(office => office.code));
@@ -885,7 +903,10 @@
         mid: document.getElementById("chk-sch-mid").checked,
         high: document.getElementById("chk-sch-high").checked,
         special: document.getElementById("chk-sch-special").checked,
-        alt: document.getElementById("chk-sch-alt").checked
+        alt: document.getElementById("chk-sch-alt").checked,
+        foreign: document.getElementById("chk-sch-foreign").checked,
+        broadcast: document.getElementById("chk-sch-broadcast").checked,
+        lifelong: document.getElementById("chk-sch-lifelong").checked
       };
 
       const selectedSupervisor = document.getElementById("filter-supervisor-select").value;
