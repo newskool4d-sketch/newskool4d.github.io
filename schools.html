@@ -175,7 +175,7 @@
     <!-- Sidebar -->
     <div class="sidebar">
       <div class="sidebar-header">
-        <h2 class="sidebar-title">🏫 관내 학교 디렉토리</h2>
+        <h2 class="sidebar-title">관내 학교 디렉토리</h2>
         <p class="sidebar-subtitle">인천광역시교육청 및 5대 지원청의 실제 장학 행정 구조에 맞춘 지능형 매핑 도구입니다.</p>
         <div class="workflow-status" id="school-workflow-status">
           <div class="workflow-status-chip" id="school-scope-chip">
@@ -323,7 +323,7 @@
             <label class="checkbox-container" style="grid-column: 1 / -1;">
               <input type="checkbox" id="chk-sch-fav" data-action="render-school-list">
               <span class="custom-checkbox"></span>
-              <span>⭐ 관심 학교만 보기</span>
+              <span>관심 학교만 보기</span>
             </label>
           </div>
         </div>
@@ -345,7 +345,7 @@
         <!-- 5. 학교 리스트 -->
         <div style="flex: 1; display: flex; flex-direction: column; min-height: 200px;">
           <h3 style="font-size: 15px; font-weight: 700; color: #fff; margin-bottom: 8px; display: flex; justify-content: space-between;">
-            <span>🏫 관할 학교 목록</span>
+            <span>관할 학교 목록</span>
             <span id="schools-count" style="color: var(--blue-light);">0개교</span>
           </h3>
           <div id="school-list-dom">
@@ -942,7 +942,6 @@
       const officeLabel = getSchoolOfficeLabel(selectedOffice);
       listDom.innerHTML = `
         <div class="alert alert-info" style="text-align:center; padding:32px 18px;">
-          <div style="font-size:24px; margin-bottom:10px;">📍</div>
           <strong>${escapeHtml(officeLabel)} 학교 위치 불러오는 중</strong>
           <p style="margin:8px 0 0; color:var(--text-sub); font-size:13px;">${count}개교 위치를 지도에 배치하고 있습니다.</p>
         </div>
@@ -1125,7 +1124,7 @@
               style="margin-left:auto;border:0;background:none;cursor:pointer;font-size:16px;line-height:1;color:${isFavorite ? "#f59e0b" : "var(--border-color)"};">★</button>
           </div>
           <div class="school-meta">
-            📍 ${escapeHtml(sch.address)}
+            주소: ${escapeHtml(sch.address)}
           </div>
           ${designationBadges ? `<div class="designation-badges">${designationBadges}</div>` : ""}
           <div class="supervisor-box">

@@ -1,19 +1,27 @@
 /* Incheon Education Map - shared.css */
 /* 고대비 저피로 행정 지도 테마 & 가독성 중심 디자인 시스템 */
 
+@font-face {
+  font-family: "Incheon Edu Himchan";
+  src: url("assets/fonts/incheon-edu-himchan-subset.woff2") format("woff2");
+  font-display: swap;
+  font-style: normal;
+  font-weight: 700;
+}
+
 :root {
-  --bg-main: #181716;
-  --bg-card: rgba(42, 39, 35, 0.76);
-  --bg-sidebar: #24211f;
-  --border-color: rgba(255, 255, 255, 0.12);
-  --accent: #f6c453;
-  --accent-glow: rgba(254, 229, 0, 0.25);
-  --text-main: #fbfaf7;
-  --text-sub: #b6afa8;
-  --teal-light: #34d399;
-  --blue-light: #60a5fa;
-  --success: #10b981;
-  --error: #ef4444;
+  --bg-main: #ffffff;
+  --bg-card: #ffffff;
+  --bg-sidebar: #ffffff;
+  --border-color: #e0e2e8;
+  --accent: #0060b0;
+  --accent-glow: rgba(0, 96, 176, 0.16);
+  --text-main: #1c1c1e;
+  --text-sub: #6b6f7e;
+  --teal-light: #0060b0;
+  --blue-light: #00b0e0;
+  --success: #00a060;
+  --error: #b42318;
   --font-base: 'Pretendard', 'Noto Sans KR', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
 }
 
@@ -101,6 +109,7 @@ body {
 }
 
 .gnb-title {
+  font-family: "Incheon Edu Himchan", var(--font-base);
   font-size: 20px;
   font-weight: 700;
   letter-spacing: 0;
@@ -204,6 +213,7 @@ body {
 }
 
 .sidebar-title {
+  font-family: "Incheon Edu Himchan", var(--font-base);
   font-size: 22px;
   font-weight: 700;
   color: #fff;
@@ -1067,3 +1077,37 @@ button:disabled {
     padding: 24px 16px;
   }
 }
+
+/* Bright administrative map theme. Kept at the end so the legacy presentation rules
+   above cannot reintroduce the retired dark visual system. */
+.gnb-header { background: rgba(255,255,255,.96) !important; border-bottom-color: var(--border-color) !important; }
+.gnb-badge { background: var(--accent) !important; color: #fff !important; box-shadow: none !important; }
+.gnb-title, .sidebar-title, .card-title, .workflow-step-head, .workflow-status-chip strong, .map-toolbar strong { color: #050038 !important; }
+.gnb-nav, .gnb-status-badge, .workflow-status-chip, .workflow-step-card, .map-toolbar { background: #f7f8fa !important; border-color: var(--border-color) !important; box-shadow: none !important; }
+.gnb-tab, .gnb-status-badge, .workflow-note, .map-toolbar span { color: var(--text-sub) !important; }
+.gnb-tab:hover, .gnb-tab.active { color: #050038 !important; background: #e6f0f9 !important; border-color: #b9d4ed !important; box-shadow: none !important; }
+.sidebar, .sidebar-header, .sidebar-content { background: #fff !important; }
+.card, .workflow-step-card, .office-select-header, .school-card, .place-card { background: #fff !important; border-color: var(--border-color) !important; box-shadow: 0 2px 8px rgba(5,0,56,.04) !important; }
+.card:hover, .school-card:hover, .place-card:hover, .place-card.active { background: #f7fbff !important; border-color: #8dbce2 !important; box-shadow: 0 4px 12px rgba(0,96,176,.10) !important; }
+input[type="text"], select, textarea { background: #f7f8fa !important; border-color: var(--border-color) !important; color: var(--text-main) !important; }
+input[type="text"]:focus, select:focus, textarea:focus, button:focus-visible, a:focus-visible, [role="button"]:focus-visible { border-color: var(--accent) !important; box-shadow: 0 0 0 3px rgba(0,96,176,.16) !important; outline: 0 !important; }
+button { background: #1c1c1e !important; color: #fff !important; border-radius: 9999px !important; box-shadow: none !important; }
+button:hover { background: #2c2c34 !important; box-shadow: none !important; }
+.btn-secondary, .btn-save-sv, .map-popup-link-btn { background: #fff !important; border-color: var(--border-color) !important; color: var(--text-main) !important; }
+.btn-secondary:hover, .btn-save-sv:hover, .map-popup-link-btn:hover { background: #e6f0f9 !important; color: #004c8c !important; }
+.checkbox-container input:checked + .custom-checkbox, .workflow-step-no { background: var(--accent) !important; border-color: var(--accent) !important; color: #fff !important; }
+.map-viewport { background: #e6f0f9 !important; }
+.map-toolbar { background: rgba(255,255,255,.96) !important; }
+.map-popup, .map-loader-card, .key-modal-content { background: #fff !important; border-color: var(--border-color) !important; color: var(--text-main) !important; box-shadow: 0 16px 40px rgba(5,0,56,.14) !important; }
+.map-popup { border-top-color: var(--accent) !important; }
+.map-popup-header { color: #050038 !important; }
+.map-popup-desc, .map-popup-info { color: var(--text-sub) !important; }
+.map-loader-cover { background: rgba(247,248,250,.94) !important; }
+.school-name, .place-card-name, .office-select-header strong { color: #050038 !important; }
+.school-level-badge, .supervisor-box, .designation-box { background: #f7f8fa !important; border-color: var(--border-color) !important; }
+.designation-badge { background: #f5f3ff !important; color: #5b21b6 !important; border-color: #ddd6fe !important; }
+.supervisor-input { color: #0060b0 !important; border-bottom-color: #b9d4ed !important; }
+.designation-input { color: #6d28d9 !important; border-bottom-color: #ddd6fe !important; }
+.sidebar-resizer { background: #f7f8fa !important; }
+.sidebar-resizer::before { background: #9ba0ad !important; }
+.sidebar-resizer::after { background: #fff !important; color: var(--text-sub) !important; }

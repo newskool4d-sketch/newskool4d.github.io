@@ -7,6 +7,14 @@
   <link rel="icon" href="data:,">
   <title>인천교육 통합지도 작업 화면</title>
   <style>
+    @font-face {
+      font-family: "Incheon Edu Himchan";
+      src: url("assets/fonts/incheon-edu-himchan-subset.woff2") format("woff2");
+      font-display: swap;
+      font-style: normal;
+      font-weight: 700;
+    }
+
     :root {
       --um-canvas: #ffffff;
       --um-ink: #1c1c1e;
@@ -14,11 +22,11 @@
       --um-muted: #6b6f7e;
       --um-hairline: #e0e2e8;
       --um-surface: #f7f8fa;
-      --um-yellow: #ffd02f;
-      --um-yellow-soft: #fff8e0;
-      --um-blue: #4262ff;
-      --um-blue-pressed: #2a41b6;
-      --um-success: #00b473;
+      --um-yellow: #0060b0;
+      --um-yellow-soft: #e6f0f9;
+      --um-blue: #0060b0;
+      --um-blue-pressed: #004c8c;
+      --um-success: #00a060;
       --um-danger-soft: #fbd4d4;
       --um-school: #fde0f0;
       --um-library: #c3faf5;
@@ -122,6 +130,11 @@
       color: var(--um-ink-deep);
       font-size: 22px;
       line-height: 1.3;
+    }
+
+    .um-brand strong {
+      font-family: "Incheon Edu Himchan", "Pretendard", "Noto Sans KR", sans-serif;
+      font-weight: 700;
     }
 
     .um-brand span,

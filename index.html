@@ -47,14 +47,28 @@
     }
 
     .brand-mark {
+      position: relative;
       display: grid;
       place-items: center;
       width: 44px;
       height: 44px;
-      border: 1px solid rgba(52, 211, 153, 0.42);
+      border: 1px solid #0060b0;
       border-radius: 8px;
-      background: rgba(15, 23, 42, 0.74);
-      color: var(--teal-light);
+      background: #fff;
+      color: #0060b0;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .04em;
+    }
+
+    .brand-mark-dot {
+      position: absolute;
+      right: 6px;
+      bottom: 6px;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #f08020;
     }
 
     .brand small {
@@ -66,6 +80,8 @@
     }
 
     .brand strong {
+      font-family: "Incheon Edu Himchan", "Pretendard", "Noto Sans KR", sans-serif;
+      font-weight: 700;
       display: block;
       color: #fff;
       font-size: 20px;
@@ -342,6 +358,45 @@
       word-break: keep-all;
     }
 
+    /* Public home: a light map canvas that matches the working map screens. */
+    body {
+      background:
+        linear-gradient(90deg, rgba(224,226,232,.52) 1px, transparent 1px),
+        linear-gradient(rgba(224,226,232,.52) 1px, transparent 1px),
+        #fff;
+      background-size: 44px 44px;
+    }
+
+    .brand-mark {
+      position: relative;
+      border-color: #0060b0;
+      background: #fff;
+      color: #0060b0;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .brand small { color: #0060b0; }
+    .brand strong, h1, .launch-tile strong, .metric strong, .map-label strong, .deploy-note strong { color: #050038; }
+    h1 {
+      max-width: 12ch;
+      font-size: clamp(42px, 4.3vw, 56px);
+      letter-spacing: -.045em;
+      text-wrap: balance;
+    }
+    .text-link { background: #fff; border-color: var(--border-color); color: #1c1c1e; }
+    .text-link:hover { background: #e6f0f9; border-color: #8dbce2; }
+    .eyebrow { border-color: #b9d4ed; background: #e6f0f9; color: #004c8c; }
+    .launch-tile { background: #fff; border-color: var(--border-color); box-shadow: 0 2px 8px rgba(5,0,56,.04); }
+    .launch-tile:hover { background: #f7fbff; border-color: #8dbce2; }
+    .map-stage { background: #e6f0f9; border-color: #b9d4ed; box-shadow: 0 24px 60px rgba(0,96,176,.14); }
+    .map-stage::before { background: linear-gradient(120deg, transparent 12%, rgba(0,96,176,.14) 12% 13%, transparent 13% 58%, rgba(0,176,224,.14) 58% 59%, transparent 59%), linear-gradient(32deg, rgba(5,0,56,.08) 0 1px, transparent 1px 60px), linear-gradient(118deg, rgba(5,0,56,.07) 0 1px, transparent 1px 76px), #f7f8fa; background-size: auto, 72px 72px, 82px 82px, auto; }
+    .map-water { background: linear-gradient(180deg, rgba(0,176,224,.22), rgba(0,96,176,.06)); border-left-color: rgba(0,176,224,.4); }
+    .route-line { background: linear-gradient(90deg, #f08020, #0060b0, #00b0e0); box-shadow: 0 0 18px rgba(0,96,176,.2); }
+    .pin { border-color: #fff; color: #fff; box-shadow: 0 14px 24px rgba(5,0,56,.2); }
+    .pin.school { background: #f08020; } .pin.infra { background: #0060b0; } .pin.work { background: #00a060; }
+    .metric, .map-label, .deploy-note { background: rgba(255,255,255,.92); border-color: var(--border-color); box-shadow: 0 2px 8px rgba(5,0,56,.05); }
+
     @media (max-width: 980px) {
       .site-shell {
         width: min(100% - 28px, 760px);
@@ -437,12 +492,7 @@
   <main class="site-shell">
     <header class="site-header">
       <a class="brand" href="index.html" aria-label="newskool4d.github.io 홈">
-        <span class="brand-mark" aria-hidden="true">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-            <path d="M9 18L3 21V6L9 3L15 6L21 3V18L15 21L9 18Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
-            <path d="M9 3V18M15 6V21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-          </svg>
-        </span>
+        <span class="brand-mark" aria-hidden="true"><span>ICE</span><span class="brand-mark-dot"></span></span>
         <span>
           <small>NEWSKOOL4D.GITHUB.IO</small>
           <strong>인천교육 통합지도</strong>
@@ -455,7 +505,7 @@
             <path d="M5 12H19M13 6L19 12L13 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
         </a>
-        <a class="text-link" href="README.md">배포 안내</a>
+        <a class="text-link" href="infrastructure.html">체험기관 지도</a>
       </div>
     </header>
 
@@ -463,7 +513,7 @@
       <div class="hero-copy">
         <div>
           <div class="eyebrow">GitHub Pages 지도 사이트</div>
-          <h1>인천교육 공개 지도를 한 곳에서 확인합니다.</h1>
+          <h1>인천교육 공개 지도를<br>한곳에서 확인합니다.</h1>
           <p class="lead">
             관내학교 디렉토리와 체험교육기관 안내처럼 공개 가능한 정보만
             newskool4d.github.io 첫 화면에서 바로 선택해 사용할 수 있도록 구성했습니다.
@@ -473,12 +523,12 @@
         <nav class="quick-launch" aria-label="지도 기능 바로가기">
           <a class="launch-tile" href="unified-map.html">
             <strong>
-              통합지도 작업 화면
+              통합지도
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                 <path d="M5 12H19M13 6L19 12L13 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
               </svg>
             </strong>
-            <span>학교, 기관, 업로드 행, 필터, 내보내기, 연결선 준비 컨트롤을 한 화면에서 확인합니다.</span>
+            <span>학교와 체험기관 위치를 한 화면에서 검색하고 필터링합니다.</span>
           </a>
           <a class="launch-tile" href="schools.html">
             <strong>
@@ -527,18 +577,18 @@
       </aside>
     </section>
 
-    <section class="deploy-strip" aria-label="배포 및 API 안내">
+    <section class="deploy-strip" aria-label="공개 지도 사용 안내">
       <div class="deploy-note">
-        <strong>배포 주소</strong>
-        <span>저장소 이름을 newskool4d.github.io로 만들고 이 폴더의 파일을 루트에 올리면 https://newskool4d.github.io/에서 바로 열립니다.</span>
+        <strong>공개 범위</strong>
+        <span>학교 기본 정보와 체험교육기관 위치처럼 공개 가능한 정보만 제공합니다.</span>
       </div>
       <div class="deploy-note">
-        <strong>카카오 도메인 등록</strong>
-        <span>카카오 Developers Web 플랫폼에 https://newskool4d.github.io를 허용 도메인으로 등록해야 지도 SDK가 정상 작동합니다.</span>
+        <strong>지도 사용 안내</strong>
+        <span>검색과 필터는 바로 사용할 수 있으며, 카카오 지도 타일은 JavaScript 키를 등록하면 표시됩니다.</span>
       </div>
       <div class="deploy-note">
-        <strong>비공개 앱 분리</strong>
-        <span>업무용 커스텀 디렉토리와 민감정보 매칭 도구는 공개 배포에 포함하지 않고 로컬에서만 실행합니다.</span>
+        <strong>데이터 보호</strong>
+        <span>업무용 CSV와 민감정보 매칭 도구는 공개 화면에 포함하지 않고 사용자 PC에서만 처리합니다.</span>
       </div>
     </section>
   </main>
