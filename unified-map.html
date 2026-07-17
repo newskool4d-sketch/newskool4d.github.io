@@ -477,31 +477,8 @@
     .um-row {
       position: relative;
       padding: var(--um-space-4);
-      padding-right: 44px;
       border-bottom: 1px solid var(--um-hairline);
       background: var(--um-canvas);
-    }
-
-    .um-fav-toggle {
-      position: absolute;
-      top: var(--um-space-3);
-      right: var(--um-space-3);
-      border: 0;
-      background: none;
-      padding: 4px;
-      font-size: 18px;
-      line-height: 1;
-      color: var(--um-hairline);
-      cursor: pointer;
-    }
-
-    .um-fav-toggle.is-active {
-      color: #f59e0b;
-    }
-
-    .um-fav-toggle:focus-visible {
-      outline: 2px solid var(--um-ink-deep);
-      outline-offset: 2px;
     }
 
     .um-chip.is-designation {
@@ -523,6 +500,28 @@
       font-size: 13px;
       line-height: 1.45;
       word-break: keep-all;
+    }
+
+    .um-row-main .um-row-contact {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--um-space-2) var(--um-space-3);
+      margin-top: var(--um-space-2);
+    }
+
+    .um-row-contact a {
+      display: inline-flex;
+      align-items: center;
+      min-height: 44px;
+      color: var(--um-blue);
+      font-weight: 700;
+      text-underline-offset: 3px;
+    }
+
+    .um-row-contact a:focus-visible {
+      outline: 2px solid var(--um-blue);
+      outline-offset: 2px;
+      border-radius: 3px;
     }
 
     .um-row-meta {
@@ -631,6 +630,22 @@
     }
 
     @media (max-width: 1100px) {
+      .um-toolbar {
+        grid-template-columns: minmax(0, 1fr) auto;
+      }
+    }
+
+    @media (max-width: 767px) {
+      .um-shell {
+        grid-template-rows: auto auto auto;
+      }
+
+      .um-header,
+      .um-toolbar,
+      .um-main {
+        padding-inline: var(--um-space-3);
+      }
+
       .um-toolbar,
       .um-main {
         grid-template-columns: 1fr;
@@ -642,18 +657,6 @@
 
       .um-panel {
         max-height: none;
-      }
-    }
-
-    @media (max-width: 680px) {
-      .um-shell {
-        grid-template-rows: auto auto auto;
-      }
-
-      .um-header,
-      .um-toolbar,
-      .um-main {
-        padding-inline: var(--um-space-3);
       }
 
       .um-header,
@@ -755,10 +758,6 @@
         <input id="import-file" class="um-file-input" type="file" accept=".csv,.tsv,.txt,.xlsx,.xls" tabindex="-1">
         <a class="um-button" href="data/institutions.sample.csv" download>템플릿 다운로드</a>
         <button id="export-data" class="um-button um-button-primary" type="button">데이터 내보내기</button>
-        <label class="um-layer-toggle"><input id="favorites-only" type="checkbox">관심 기관만 보기</label>
-        <button id="export-favorites" class="um-button" type="button">관심 내보내기</button>
-        <label class="um-file-label" for="import-favorites-file" tabindex="0">관심 가져오기</label>
-        <input id="import-favorites-file" class="um-file-input" type="file" accept=".json" tabindex="-1">
       </div>
     </section>
 
@@ -778,7 +777,7 @@
             </fieldset>
             <span id="map-layer-badge" class="um-chip is-warn">키 저장 후 마커 표시</span>
             <button id="fit-map-bounds" class="um-button" type="button">마커 범위 맞춤</button>
-            <span class="um-chip">연결선 사용 가능</span>
+            <span class="um-chip">도로 경로 사용 가능</span>
           </div>
         </div>
         <div id="map" role="application" aria-label="인천교육 통합지도 캔버스"></div>
@@ -788,9 +787,9 @@
         <div id="map-placeholder" class="um-map-placeholder">
           <section class="um-key-card provider-setup" aria-labelledby="key-card-title">
             <span class="provider-kicker">MAP PROVIDER</span>
-            <h2 id="key-card-title">지도 연결 전에도 검색·필터·데이터 작업을 사용할 수 있습니다.</h2>
+            <h2 id="key-card-title">지도 연결 전에도 <span class="um-keep-together">검색·필터·데이터 작업을</span> <span class="um-keep-together">사용할 수 있습니다.</span></h2>
             <p>
-              검색·필터·업로드·내보내기는 그대로 동작합니다. 지도 연결 정보와 업로드 데이터는 이 브라우저에만 저장되며, Client Secret과 REST 키는 입력하지 않습니다.
+              검색·필터·업로드·내보내기는 그대로 동작합니다. 지도 연결 정보와 업로드 데이터는 이 브라우저에만 저장되며, <span class="um-keep-together">Client Secret</span>과 REST 키는 <span class="um-keep-together">입력하지 않습니다.</span>
             </p>
             <div class="um-key-form">
               <label>
@@ -806,7 +805,7 @@
               </label>
               <button id="save-map-credential" class="um-button um-button-primary" type="button">저장하고 지도 연결</button>
             </div>
-            <p id="provider-help" class="um-note">Naver Cloud Platform의 Web 서비스 URL에 현재 사이트 주소를 등록해 주세요. Client Secret은 입력하지 마세요.</p>
+            <p id="provider-help" class="um-note">Naver Cloud Platform의 Web 서비스 URL에 현재 사이트 주소를 등록해 주세요. <span class="um-keep-together">Client Secret</span>은 <span class="um-keep-together">입력하지 마세요.</span></p>
             <p id="key-message" class="um-note" aria-live="polite"></p>
           </section>
         </div>
@@ -844,7 +843,7 @@
 
         <section class="um-utility" aria-label="연결선과 저장소 상태">
           <div class="um-utility-card">
-            <h3>연결선 컨트롤</h3>
+            <h3>도로 경로 연결</h3>
             <div class="um-connection-grid">
               <label class="um-note" for="connection-from">시작 기관</label>
               <select id="connection-from" class="um-select"></select>
@@ -866,14 +865,14 @@
               </select>
               <label class="um-note" for="connection-label">라벨</label>
               <input id="connection-label" class="um-input" type="text" maxlength="80" placeholder="연결 설명">
-              <p id="connection-distance" class="um-note" aria-live="polite">시작과 도착 기관을 선택하면 직선거리를 표시합니다.</p>
-              <button id="connection-create" class="um-button um-button-primary" type="button">연결선 저장</button>
+              <p id="connection-distance" class="um-note" aria-live="polite">시작과 도착 기관을 선택한 뒤 도로 경로를 계산합니다.</p>
+              <button id="connection-create" class="um-button um-button-primary" type="button">도로 경로 저장</button>
             </div>
             <ul id="connection-list" class="um-connection-list" aria-label="저장된 연결선 목록"></ul>
-            <button id="connection-export" class="um-button" type="button">연결선 JSON 내보내기</button>
-            <button id="connection-import-button" class="um-button" type="button">연결선 JSON 가져오기</button>
+            <button id="connection-export" class="um-button" type="button">도로 경로 JSON 내보내기</button>
+            <button id="connection-import-button" class="um-button" type="button">도로 경로 JSON 가져오기</button>
             <input id="connection-import-file" class="um-file-input" type="file" accept="application/json,.json" tabindex="-1">
-            <p id="connection-message" class="um-note" aria-live="polite">연결 기록은 로컬에 저장됩니다. 지도가 준비되면 연결선을 표시합니다.</p>
+            <p id="connection-message" class="um-note" aria-live="polite">도로 경로는 네이버 Directions로 계산하며 기록은 로컬에 저장됩니다.</p>
           </div>
           <div class="um-utility-card">
             <h3>저장소 경고</h3>

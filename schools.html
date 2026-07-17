@@ -64,6 +64,28 @@
       line-height: 1.5;
       margin-bottom: 10px;
     }
+    .school-contact-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 14px;
+      margin: -2px 0 12px;
+      font-size: 13px;
+    }
+    .school-contact-row a,
+    .map-popup-info-item a {
+      display: inline-flex;
+      align-items: center;
+      min-height: 44px;
+      color: var(--ice-blue, #0060b0);
+      font-weight: 700;
+      text-underline-offset: 3px;
+    }
+    .school-contact-row a:focus-visible,
+    .map-popup-info-item a:focus-visible {
+      outline: 2px solid var(--ice-blue, #0060b0);
+      outline-offset: 2px;
+      border-radius: 3px;
+    }
     
     /* 장학사 배정 영역 */
     .supervisor-box {
@@ -99,6 +121,9 @@
       border-radius: 6px;
       font-size: 12px;
       font-weight: 600;
+      flex: 0 0 auto;
+      min-width: 48px;
+      white-space: nowrap;
     }
     .btn-save-sv:hover {
       background: var(--blue-light);
@@ -321,11 +346,6 @@
               <span class="custom-checkbox"></span>
               <span>학력인정평생</span>
             </label>
-            <label class="checkbox-container" style="grid-column: 1 / -1;">
-              <input type="checkbox" id="chk-sch-fav" data-action="render-school-list">
-              <span class="custom-checkbox"></span>
-              <span>관심 학교만 보기</span>
-            </label>
           </div>
         </div>
 
@@ -376,25 +396,6 @@
   <script src="js/map-provider.js"></script>
   <script src="shared.js"></script>
   <script>
-    // 관심 학교 저장 — js/favorites.js와 같은 localStorage 키·형식을 공유해 통합지도와 상호 인식된다.
-    const FAVORITES_KEY = "incheon_edu_favorites_v1";
-    const favoriteIds = (() => {
-      try {
-        const parsed = JSON.parse(localStorage.getItem(FAVORITES_KEY) ?? "null");
-        return new Set(parsed && parsed.version === 1 && Array.isArray(parsed.ids) ? parsed.ids : []);
-      } catch {
-        return new Set();
-      }
-    })();
-
-    function toggleFavorite(id) {
-      if (favoriteIds.has(id)) favoriteIds.delete(id);
-      else favoriteIds.add(id);
-      try {
-        localStorage.setItem(FAVORITES_KEY, JSON.stringify({ version: 1, ids: [...favoriteIds] }));
-      } catch (e) { /* 저장 실패 시에도 세션 내 동작 유지 */ }
-    }
-
     // 1. 교육 기관 행정 대분류 프리셋 (본청 추가!)
     // 주소·lat/lng 정본은 data/institutions.json — 수정 시 반드시 함께 갱신 (tests/office-data.test.mjs가 대조)
     const OFFICE_PRESETS = [
@@ -594,15 +595,6 @@
       });
 
       listDom.addEventListener("click", event => {
-        const favButton = event.target.closest("[data-action='toggle-favorite']");
-        if (favButton) {
-          const card = favButton.closest(".school-card");
-          if (!card) return;
-          toggleFavorite(card.dataset.schoolId);
-          renderSchoolsList();
-          return;
-        }
-
         const saveButton = event.target.closest("[data-action='save-supervisor']");
         if (saveButton) {
           const card = saveButton.closest(".school-card");
@@ -620,14 +612,14 @@
         }
 
         const focusCard = event.target.closest("[data-action='focus-school']");
-        if (!focusCard || !listDom.contains(focusCard)) return;
+        if (!focusCard || !listDom.contains(focusCard) || event.target.closest("a")) return;
         if (event.target.closest(".supervisor-box") || event.target.closest(".designation-box")) return;
         focusSchool(focusCard.dataset.schoolId, focusCard);
       });
 
       listDom.addEventListener("keydown", event => {
         const focusCard = event.target.closest("[data-action='focus-school']");
-        if (!focusCard || (event.key !== "Enter" && event.key !== " ")) return;
+        if (!focusCard || event.target.closest("a") || (event.key !== "Enter" && event.key !== " ")) return;
         if (event.target.closest(".supervisor-box") || event.target.closest(".designation-box")) return;
         event.preventDefault();
         focusSchool(focusCard.dataset.schoolId, focusCard);
@@ -917,15 +909,18 @@
       badge.textContent = office.badgeName;
       updateSchoolWorkflowStatus(0);
 
-      if (!mapInstance || !window.eduMaps || !window.eduMaps.maps || !window.eduMaps.maps.services) {
-        return;
-      }
-
       // 2. 잠금 필터들 활성화
       document.getElementById("school-filter-card").style.opacity = "1";
       document.getElementById("school-filter-card").style.pointerEvents = "auto";
       document.getElementById("search-card").style.opacity = "1";
       document.getElementById("search-card").style.pointerEvents = "auto";
+
+      // 지도 키가 없어도 학교 목록·전화·홈페이지는 계속 사용할 수 있다.
+      if (!mapInstance || !window.eduMaps || !window.eduMaps.maps || !window.eduMaps.maps.services) {
+        renderSchoolsList();
+        saveSchoolsUrlState();
+        return;
+      }
 
       // 3. 지도 이동
       const officeMarkerObj = officeMarkers.find(m => m.code === officeCode);
@@ -1047,17 +1042,14 @@
       const allSchools = [...BASE_SCHOOLS, ...customSchools];
       const officeSchools = allSchools.filter(s => s.office === selectedOffice);
 
-      const favoritesOnly = document.getElementById("chk-sch-fav")?.checked;
-
       const filteredSchools = officeSchools.filter(sch => {
         const levelMatch = filterLevels[sch.level];
         const currentSvName = schoolSupervisors[sch.id] || "";
         const supervisorMatch = !selectedSupervisor || (currentSvName === selectedSupervisor);
-        const favoriteMatch = !favoritesOnly || favoriteIds.has(sch.id);
         const designationTypes = (schoolDesignations[sch.id] || "").split(";").map(t => t.trim());
         const designationMatch = !selectedDesignation || designationTypes.includes(selectedDesignation);
 
-        return levelMatch && supervisorMatch && favoriteMatch && designationMatch;
+        return levelMatch && supervisorMatch && designationMatch;
       });
 
       // 3. 카운터 개수 업데이트
@@ -1112,7 +1104,6 @@
         card.tabIndex = 0;
         card.setAttribute("role", "button");
 
-        const isFavorite = favoriteIds.has(sch.id);
         const designationBadges = designation
           ? designation.split(";").map(t => t.trim()).filter(Boolean)
               .map(t => `<span class="designation-badge">${escapeHtml(t)}</span>`).join("")
@@ -1121,13 +1112,14 @@
           <div class="school-name">
             <span>${escapeHtml(sch.name)}</span>
             <span class="school-level-badge">${escapeHtml(getSchoolLevelLabel(sch.level))}</span>
-            <button type="button" class="fav-star${isFavorite ? " is-active" : ""}" data-action="toggle-favorite"
-              aria-pressed="${isFavorite}" aria-label="${escapeHtml(sch.name)} 관심 학교 ${isFavorite ? "해제" : "등록"}"
-              style="margin-left:auto;border:0;background:none;cursor:pointer;font-size:16px;line-height:1;color:${isFavorite ? "#f59e0b" : "var(--border-color)"};">★</button>
           </div>
           <div class="school-meta">
             주소: ${escapeHtml(sch.address)}
           </div>
+          ${(sch.phone || sch.website) ? `<div class="school-contact-row">
+            ${sch.phone ? `<a href="tel:${escapeHtml(String(sch.phone).replace(/[^0-9+]/g, ""))}">전화 ${escapeHtml(sch.phone)}</a>` : ""}
+            ${sch.website ? `<a href="${escapeHtml(sch.website)}" target="_blank" rel="noopener noreferrer">홈페이지</a>` : ""}
+          </div>` : ""}
           ${designationBadges ? `<div class="designation-badges">${designationBadges}</div>` : ""}
           <div class="supervisor-box">
             <span style="font-size: 13px; color: var(--text-sub);">담당 장학사:</span>
@@ -1185,6 +1177,8 @@
             <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
             <span>${escapeHtml(item.data.address)}</span>
           </div>
+          ${item.data.phone ? `<div class="map-popup-info-item"><span>전화 <a href="tel:${escapeHtml(String(item.data.phone).replace(/[^0-9+]/g, ""))}">${escapeHtml(item.data.phone)}</a></span></div>` : ""}
+          ${item.data.website ? `<div class="map-popup-info-item"><span><a href="${escapeHtml(item.data.website)}" target="_blank" rel="noopener noreferrer">학교 홈페이지 열기</a></span></div>` : ""}
           <div class="map-popup-info-item" style="color: var(--accent); font-weight: bold;">
             <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
             <span>담당 장학사: ${escapeHtml(svName)} 장학사</span>

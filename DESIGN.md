@@ -6,7 +6,9 @@ The product should feel like an operational Korean education-office map placed o
 
 The identity adapts Miro's whiteboard language to public education-office work, with an accent system derived from the Incheon Metropolitan City Office of Education CI (see section 8). Use white canvas, black primary pills, an `ice-blue` identity accent taken from the office symbol's primary wave blue, an `ice-orange` point color taken from the symbol's sun, pastel category surfaces, and compact information panels. The blue accent is an identity marker for the service badge, links, selected-state highlight, and key-status emphasis. The orange point is reserved for the brand mark dot and warning chips. Neither accent is the default background for large page regions.
 
-Static deployment remains the baseline. This design system must not require a private server, external design runtime, or committed map credential. Naver Maps is the default public provider and Kakao Maps remains a temporary fallback during migration. Any future private mode or REST geocoding proxy must be documented as a separate mode, not assumed by public static pages.
+Static deployment remains the baseline for page assets. Naver Maps is the default public provider and Kakao Maps remains a temporary fallback during migration. Road-route connections are the only server-assisted public feature: a same-origin `/api/directions` proxy may use deployment secrets to call Naver Directions 5, while browser pages never accept, expose, or store a Directions Client Secret. If that server credential is unavailable, the rest of the site stays usable and the connection control reports a configuration state instead of drawing a straight-line substitute.
+
+The Directions proxy requires a deployment-provided `DIRECTIONS_RATE_LIMITER` binding whose `limit({ key })` state is shared across worker instances and configured for 12 requests per minute. The generated worker fails closed with `503 directions_rate_limit_not_configured` when that distributed binding is absent, so credentials alone can never enable an unmetered paid proxy. It also rejects cross-site browser requests, accepts only endpoints inside the documented greater-Incheon coordinate envelope, and aborts the upstream request after eight seconds.
 
 ## 2. Color
 
@@ -113,10 +115,10 @@ Map and data components:
 - `status-chip`: micro text, full radius, category color surface, no emoji prefix.
 - `provider-control`: compact Naver/Kakao selector for setup and recovery. Naver is visually recommended and selected by default; the control must never ask for a client secret.
 - `key-prompt`: ice-blue-soft panel with provider-aware credential guidance, a registered-domain reminder, and black save action. Naver uses a Maps JavaScript Client ID (`ncpKeyId`); Kakao uses a JavaScript key.
-- `institution-row`: white row, hairline divider, category chip, office label, coordinate/geocode state.
+- `institution-row`: white row, hairline divider, category chip, office label, coordinate/geocode state, and optional contact links. Phone and homepage are secondary text actions with explicit labels; missing values leave no empty placeholder.
 - `map-popup`: white surface, 8-12px radius, title, type/office chips, address, and row actions.
 - `import-preview`: compact table/card hybrid with valid, skipped, duplicate, pre-geocoded, and failed counts.
-- `connection-control`: start/end selectors, red/blue line color chips, stroke selector, save/delete/export/import actions.
+- `connection-control`: start/end selectors, red/blue line color chips, stroke selector, save/delete/export/import actions, and a text-first road-route state. Saving calculates a Naver Directions 5 driving route, then stores its path, road distance, and estimated duration. Legacy records without a route show `도로 경로 재계산 필요` and are never rendered as straight lines.
 
 Component states must be explicit: default, focus-visible, active/selected, pressed, disabled, loading, empty, success, warning, and error. Loading states may use text and CSS motion, but must not depend on emoji loader icons.
 
@@ -202,6 +204,8 @@ The single signature moment is the home-page atlas preview: a quiet route trace 
 - `context-rail`: dense list and task detail surface. Rows use one title line, one metadata line, and no more than three visible chips before progressive disclosure.
 - `signal-chip`: text-first provider, count, success, warning, and data-quality states. Provider chips use `NAVER` or `KAKAO` text; they do not imitate either company's logo.
 - `provider-setup`: provider selector, one credential field, registered-domain reminder, save/retry action, and a local-storage notice. Client secrets are never accepted or stored.
+- `school-contact-row`: compact `전화` and `홈페이지` actions under the address. Links use the normal ice-blue focus treatment, keep a 44px mobile target, and open external homepages with `noopener noreferrer`.
+- `road-route-status`: an aria-live helper inside `connection-control` with `idle`, `loading`, `ready`, `needs-route`, `configuration-error`, and `upstream-error` states. It displays road distance and estimated duration only after the route response validates.
 
 ### Personas and density
 

@@ -1,4 +1,5 @@
 import { CONNECTION_COLOR_VALUES, CONNECTION_STROKE_STYLES } from "./constants.js";
+import { fetchRoadRoute, normalizeRoadRoute } from "./directions-service.js";
 import { loadConnections, saveConnections } from "./institution-repository.js";
 
 const VERSION = 1;
@@ -23,23 +24,37 @@ const downloadJson = (filename, json) => {
 
 export const sanitizeConnectionLabel = (value) => text(value).replace(/<[^>]*>/g, "").slice(0, LABEL_LIMIT);
 
-export const connectionDistanceMeters = (from, to) => {
-  if (!hasCoordinates(from) || !hasCoordinates(to)) return null;
-  const radius = 6371000;
-  const lat1 = finite(from.lat) * Math.PI / 180;
-  const lat2 = finite(to.lat) * Math.PI / 180;
-  const deltaLat = (finite(to.lat) - finite(from.lat)) * Math.PI / 180;
-  const deltaLng = (finite(to.lng) - finite(from.lng)) * Math.PI / 180;
-  const a = Math.sin(deltaLat / 2) ** 2 + Math.cos(lat1) * Math.cos(lat2) * Math.sin(deltaLng / 2) ** 2;
-  return Math.round(radius * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
-};
+const storedRouteFields = (route) => ({
+  routeProvider: route.provider,
+  routePath: route.path,
+  roadDistanceMeters: route.distanceMeters,
+  roadDurationMillis: route.durationMillis,
+  routedAt: route.routedAt,
+});
 
-export const createConnectionDraft = ({ id = "", fromId = "", toId = "", color = "blue", strokeStyle = "solid", label = "", now = () => new Date().toISOString() } = {}) => {
+const normalizeStoredRoute = (row) => normalizeRoadRoute({
+  provider: row.routeProvider,
+  path: row.routePath,
+  distanceMeters: row.roadDistanceMeters,
+  durationMillis: row.roadDurationMillis,
+  routedAt: row.routedAt,
+});
+
+export const createConnectionDraft = ({ id = "", fromId = "", toId = "", color = "blue", strokeStyle = "solid", label = "", route = null, now = () => new Date().toISOString() } = {}) => {
   const createdAt = text(now());
   const safeFrom = text(fromId);
   const safeTo = text(toId);
   const generated = `connection-${safeFrom}-${safeTo}-${createdAt}`.replace(/[^a-z0-9가-힣_-]+/giu, "-");
-  return { id: text(id) || generated, fromId: safeFrom, toId: safeTo, color: text(color) || "blue", strokeStyle: text(strokeStyle) || "solid", label: sanitizeConnectionLabel(label), createdAt };
+  return {
+    id: text(id) || generated,
+    fromId: safeFrom,
+    toId: safeTo,
+    color: text(color) || "blue",
+    strokeStyle: text(strokeStyle) || "solid",
+    label: sanitizeConnectionLabel(label),
+    createdAt,
+    ...(route ? storedRouteFields(normalizeRoadRoute(route)) : {}),
+  };
 };
 
 const parseConnectionSet = (input) => {
@@ -78,6 +93,15 @@ export const serializeConnectionSet = (input) => {
     if (idCounts.get(connection.id) > 1) rowErrors.push(rowError({ rowNumber, field: "id", code: "duplicate_connection_id", message: "Connection id must be unique.", id: connection.id }));
     if (!COLOR_CODES.includes(connection.color)) rowErrors.push(rowError({ rowNumber, field: "color", code: "invalid_color", message: "Connection color is not allowed.", id: connection.id }));
     if (!STROKE_SET.has(connection.strokeStyle)) rowErrors.push(rowError({ rowNumber, field: "strokeStyle", code: "invalid_stroke_style", message: "Connection stroke style is not allowed.", id: connection.id }));
+    const hasRouteData = [row.routeProvider, row.routePath, row.roadDistanceMeters, row.roadDurationMillis, row.routedAt]
+      .some((value) => value !== undefined && value !== null && value !== "");
+    if (hasRouteData) {
+      try {
+        Object.assign(connection, storedRouteFields(normalizeStoredRoute(row)));
+      } catch (error) {
+        rowErrors.push(rowError({ rowNumber, field: "routePath", code: error.code || "invalid_route", message: error.message, id: connection.id }));
+      }
+    }
     errors.push(...rowErrors);
     if (!rowErrors.length) connections.push(connection);
   });
@@ -102,8 +126,17 @@ export const validateConnectionsForInstitutions = (input, institutions = []) => 
   return errors.length ? { isValid: false, value: null, errors } : { isValid: true, value: serialized.value, errors };
 };
 
-const formatDistance = (meters) => (Number.isFinite(meters) ? `${(meters / 1000).toFixed(meters >= 10000 ? 1 : 2)} km` : "좌표 필요");
-const optionLabel = (row) => `${row.name || row.id} (${row.id})`;
+const formatDistance = (meters) => (Number.isFinite(meters) ? `${(meters / 1000).toFixed(meters >= 10000 ? 1 : 2)} km` : "경로 필요");
+const formatDuration = (milliseconds) => {
+  if (!Number.isFinite(milliseconds)) return "시간 정보 없음";
+  const minutes = Math.max(1, Math.round(milliseconds / 60000));
+  return minutes >= 60 ? `${Math.floor(minutes / 60)}시간 ${minutes % 60}분` : `${minutes}분`;
+};
+const optionLabel = (row) => {
+  const name = row.name || row.id;
+  const district = text(row.address).match(/(?:^|\s)([가-힣]+(?:구|군))(?=\s|$)/u)?.[1] ?? "";
+  return district ? `${name} · ${district}` : name;
+};
 
 const defaultElements = (root) => ({
   from: root.querySelector("#connection-from"), to: root.querySelector("#connection-to"), color: root.querySelector("#connection-color"), stroke: root.querySelector("#connection-stroke"),
@@ -111,7 +144,7 @@ const defaultElements = (root) => ({
   distance: root.querySelector("#connection-distance"), exportButton: root.querySelector("#connection-export"), importFile: root.querySelector("#connection-import-file"), importButton: root.querySelector("#connection-import-button"),
 });
 
-export const createConnectionManager = ({ mapSdk = null, map = null, storage = globalThis.localStorage, elements = null } = {}) => {
+export const createConnectionManager = ({ mapSdk = null, map = null, storage = globalThis.localStorage, elements = null, routeService = fetchRoadRoute } = {}) => {
   let maps = mapSdk?.maps ?? null;
   let currentMap = map;
   let institutions = [];
@@ -129,12 +162,9 @@ export const createConnectionManager = ({ mapSdk = null, map = null, storage = g
     const validation = validateConnectionsForInstitutions({ version: VERSION, connections }, institutions);
     if (!validation.isValid) return validation;
     if (!maps?.Polyline || !maps?.LatLng || !currentMap) return validation;
-    const rows = institutionById();
-    polylines = validation.value.connections.map((connection) => {
-      const from = rows.get(connection.fromId);
-      const to = rows.get(connection.toId);
+    polylines = validation.value.connections.filter((connection) => Array.isArray(connection.routePath) && connection.routePath.length >= 2).map((connection) => {
       const line = new maps.Polyline({
-        path: [new maps.LatLng(Number(from.lat), Number(from.lng)), new maps.LatLng(Number(to.lat), Number(to.lng))],
+        path: connection.routePath.map(([lat, lng]) => new maps.LatLng(Number(lat), Number(lng))),
         strokeWeight: 4,
         strokeColor: CONNECTION_COLOR_VALUES[connection.color],
         strokeOpacity: 0.9,
@@ -159,8 +189,10 @@ export const createConnectionManager = ({ mapSdk = null, map = null, storage = g
     ui.list.innerHTML = connections.length ? connections.map((connection) => {
       const from = rows.get(connection.fromId);
       const to = rows.get(connection.toId);
-      const distance = formatDistance(connectionDistanceMeters(from, to));
-      return `<li><span><strong>${escapeHtml(connection.label || "무제 연결선")}</strong><small>${escapeHtml(from?.name ?? connection.fromId)} -> ${escapeHtml(to?.name ?? connection.toId)} · ${distance}</small></span><button class="um-button" type="button" data-connection-delete="${escapeHtml(connection.id)}">삭제</button></li>`;
+      const routeSummary = Array.isArray(connection.routePath)
+        ? `도로 ${formatDistance(connection.roadDistanceMeters)} · 예상 ${formatDuration(connection.roadDurationMillis)}`
+        : "도로 경로 재계산 필요";
+      return `<li><span><strong>${escapeHtml(connection.label || "무제 도로 경로")}</strong><small>${escapeHtml(from?.name ?? connection.fromId)} → ${escapeHtml(to?.name ?? connection.toId)} · ${escapeHtml(routeSummary)}</small></span><button class="um-button" type="button" data-connection-delete="${escapeHtml(connection.id)}">삭제</button></li>`;
     }).join("") : "<li>저장된 연결선이 없습니다.</li>";
   };
 
@@ -168,7 +200,7 @@ export const createConnectionManager = ({ mapSdk = null, map = null, storage = g
     renderOptions();
     renderList();
     renderLines();
-    if (ui?.distance) ui.distance.textContent = "시작과 도착 기관을 선택하면 직선거리를 표시합니다.";
+    if (ui?.distance) ui.distance.textContent = "시작과 도착 기관을 선택한 뒤 도로 경로를 계산합니다.";
   };
 
   const add = (draft) => {
@@ -193,7 +225,28 @@ export const createConnectionManager = ({ mapSdk = null, map = null, storage = g
   const updateDistance = () => {
     if (!ui?.distance) return;
     const rows = institutionById();
-    ui.distance.textContent = `직선거리: ${formatDistance(connectionDistanceMeters(rows.get(ui.from?.value), rows.get(ui.to?.value)))}`;
+    const from = rows.get(ui.from?.value);
+    const to = rows.get(ui.to?.value);
+    ui.distance.textContent = from && to
+      ? "도로 경로를 계산할 준비가 되었습니다. 저장 버튼을 누르세요."
+      : "시작과 도착 기관을 모두 선택해 주세요.";
+  };
+
+  const routeAndAdd = async (draftInput) => {
+    const rows = institutionById();
+    const from = rows.get(text(draftInput?.fromId));
+    const to = rows.get(text(draftInput?.toId));
+    if (!from || !to || from.id === to.id || !hasCoordinates(from) || !hasCoordinates(to)) {
+      const probe = createConnectionDraft(draftInput);
+      const validation = validateConnectionsForInstitutions({ version: VERSION, connections: [...connections, probe] }, institutions);
+      return { ok: false, errors: validation.errors };
+    }
+    try {
+      const route = await routeService({ from, to });
+      return add(createConnectionDraft({ ...draftInput, route }));
+    } catch (error) {
+      return { ok: false, errors: [rowError({ field: "route", code: error.code || "directions_request_failed", message: error.message || "도로 경로를 계산하지 못했습니다." })] };
+    }
   };
 
   const importJson = (json) => {
@@ -207,12 +260,29 @@ export const createConnectionManager = ({ mapSdk = null, map = null, storage = g
 
   const bindControls = (root = document) => {
     ui = ui ?? defaultElements(root);
-    ui?.create?.addEventListener("click", () => {
-      const result = add(createConnectionDraft({ fromId: ui.from?.value, toId: ui.to?.value, color: ui.color?.value, strokeStyle: ui.stroke?.value, label: ui.label?.value }));
-      setMessage(result.ok
-        ? (maps?.Polyline && currentMap ? "연결선을 저장하고 지도에 표시했습니다." : "연결선을 저장했습니다. 지도가 준비되면 표시됩니다.")
-        : result.errors.map((error) => error.message).join(" "));
-      if (result.ok && ui.label) ui.label.value = "";
+    ui?.create?.addEventListener("click", async () => {
+      ui.create.disabled = true;
+      ui.create.setAttribute("aria-busy", "true");
+      setMessage("네이버 도로 경로를 계산하고 있습니다.");
+      if (ui.distance) ui.distance.textContent = "네이버 도로 경로를 계산하고 있습니다.";
+      try {
+        const result = await routeAndAdd({ fromId: ui.from?.value, toId: ui.to?.value, color: ui.color?.value, strokeStyle: ui.stroke?.value, label: ui.label?.value });
+        setMessage(result.ok
+          ? (maps?.Polyline && currentMap ? "도로 경로를 저장하고 지도에 표시했습니다." : "도로 경로를 저장했습니다. 지도가 준비되면 표시됩니다.")
+          : result.errors.map((error) => error.message).join(" "));
+        if (result.ok) {
+          const savedRoute = connections.at(-1);
+          if (ui.distance && savedRoute) {
+            ui.distance.textContent = `계산 완료: 도로 ${formatDistance(savedRoute.roadDistanceMeters)} · 예상 ${formatDuration(savedRoute.roadDurationMillis)}`;
+          }
+          if (ui.label) ui.label.value = "";
+        } else if (ui.distance) {
+          ui.distance.textContent = "도로 경로를 계산하지 못했습니다. 기관 선택과 API 설정을 확인해 주세요.";
+        }
+      } finally {
+        ui.create.disabled = false;
+        ui.create.removeAttribute("aria-busy");
+      }
     });
     ui?.list?.addEventListener("click", (event) => {
       const id = event.target?.dataset?.connectionDelete;
@@ -220,14 +290,14 @@ export const createConnectionManager = ({ mapSdk = null, map = null, storage = g
     });
     ui?.exportButton?.addEventListener("click", () => {
       downloadJson("incheon-map-connections.json", JSON.stringify({ version: VERSION, connections }, null, 2));
-      setMessage("연결선 JSON을 내보냈습니다.");
+      setMessage("도로 경로 JSON을 내보냈습니다.");
     });
     ui?.importButton?.addEventListener("click", () => ui.importFile?.click());
     ui?.importFile?.addEventListener("change", async (event) => {
       const file = event.target.files?.[0];
       if (!file) return;
       const result = importJson(await file.text());
-      setMessage(result.ok ? "연결선 JSON을 가져왔습니다." : result.errors.map((error) => error.message).join(" "));
+      setMessage(result.ok ? "도로 경로 JSON을 가져왔습니다." : result.errors.map((error) => error.message).join(" "));
       event.target.value = "";
     });
     ui?.from?.addEventListener("change", updateDistance);
@@ -241,8 +311,14 @@ export const createConnectionManager = ({ mapSdk = null, map = null, storage = g
     delete: remove,
     destroy: clearLines,
     exportJson: () => JSON.stringify({ version: VERSION, connections }, null, 2),
-    getState: () => ({ connections: [...connections], rendered: polylines.length, canDraw: Boolean(maps?.Polyline && currentMap) }),
+    getState: () => ({
+      connections: [...connections],
+      rendered: polylines.length,
+      needsRoute: connections.filter((connection) => !Array.isArray(connection.routePath)).length,
+      canDraw: Boolean(maps?.Polyline && currentMap),
+    }),
     importJson,
+    routeAndAdd,
     refreshInstitutions(nextInstitutions = []) {
       institutions = nextInstitutions;
       refreshUi();
