@@ -111,8 +111,8 @@ const defaultElements = (root) => ({
   distance: root.querySelector("#connection-distance"), exportButton: root.querySelector("#connection-export"), importFile: root.querySelector("#connection-import-file"), importButton: root.querySelector("#connection-import-button"),
 });
 
-export const createConnectionManager = ({ kakao = null, map = null, storage = globalThis.localStorage, elements = null } = {}) => {
-  let maps = kakao?.maps ?? null;
+export const createConnectionManager = ({ mapSdk = null, map = null, storage = globalThis.localStorage, elements = null } = {}) => {
+  let maps = mapSdk?.maps ?? null;
   let currentMap = map;
   let institutions = [];
   let connections = loadConnections({ storage }).value.connections;
@@ -210,7 +210,7 @@ export const createConnectionManager = ({ kakao = null, map = null, storage = gl
     ui?.create?.addEventListener("click", () => {
       const result = add(createConnectionDraft({ fromId: ui.from?.value, toId: ui.to?.value, color: ui.color?.value, strokeStyle: ui.stroke?.value, label: ui.label?.value }));
       setMessage(result.ok
-        ? (maps?.Polyline && currentMap ? "연결선을 저장하고 지도에 표시했습니다." : "연결선을 저장했습니다. 지도 선은 카카오 지도가 준비되면 표시됩니다.")
+        ? (maps?.Polyline && currentMap ? "연결선을 저장하고 지도에 표시했습니다." : "연결선을 저장했습니다. 지도가 준비되면 표시됩니다.")
         : result.errors.map((error) => error.message).join(" "));
       if (result.ok && ui.label) ui.label.value = "";
     });
@@ -247,8 +247,8 @@ export const createConnectionManager = ({ kakao = null, map = null, storage = gl
       institutions = nextInstitutions;
       refreshUi();
     },
-    setMap({ kakao: nextKakao, map: nextMap }) {
-      maps = nextKakao?.maps ?? maps;
+    setMap({ mapSdk: nextMapSdk, map: nextMap }) {
+      maps = nextMapSdk?.maps ?? maps;
       currentMap = nextMap ?? currentMap;
       renderLines();
     },

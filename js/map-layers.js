@@ -82,9 +82,9 @@ const detachMarker = (marker) => {
 
 export const buildInstitutionPopupHtml = (row) => popupHtml(row);
 
-export const createInstitutionMapLayer = ({ kakao, map, elements = {} }) => {
-  const maps = kakao?.maps;
-  if (!maps || !map) throw new Error("Kakao maps namespace and map are required.");
+export const createInstitutionMapLayer = ({ mapSdk, map, elements = {} }) => {
+  const maps = mapSdk?.maps;
+  if (!maps || !map) throw new Error("Map SDK namespace and map are required.");
 
   let clusterer = maps.MarkerClusterer
     ? new maps.MarkerClusterer({ map, averageCenter: true, minLevel: 6 })

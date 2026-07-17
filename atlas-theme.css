@@ -1,0 +1,718 @@
+@font-face {
+  font-family: "Incheon Edu Himchan";
+  src: url("assets/fonts/incheon-edu-himchan-display.woff2") format("woff2");
+  font-display: swap;
+  font-style: normal;
+  font-weight: 700;
+}
+
+:root {
+  --atlas-navy: #071c35;
+  --atlas-blue-700: #004f92;
+  --atlas-blue-500: #0879d1;
+  --atlas-blue-100: #dceeff;
+  --atlas-blue-050: #f1f8ff;
+  --atlas-pearl: rgba(255, 255, 255, .88);
+  --atlas-edge: rgba(0, 96, 176, .16);
+  --atlas-grid: rgba(0, 96, 176, .055);
+  --atlas-orange: #f08020;
+  --atlas-green: #00a060;
+  --atlas-shadow: 0 22px 60px rgba(0, 76, 140, .12), 0 4px 16px rgba(5, 0, 56, .08);
+  --atlas-command-shadow: 0 12px 32px rgba(0, 76, 140, .13), inset 0 1px 0 rgba(255, 255, 255, .92);
+}
+
+html { color-scheme: light; }
+
+body {
+  color: var(--atlas-navy) !important;
+  background:
+    radial-gradient(circle at 12% 8%, rgba(0, 176, 224, .12), transparent 24rem),
+    radial-gradient(circle at 88% 22%, rgba(0, 96, 176, .09), transparent 28rem),
+    linear-gradient(90deg, var(--atlas-grid) 1px, transparent 1px),
+    linear-gradient(var(--atlas-grid) 1px, transparent 1px),
+    #f8fbff !important;
+  background-size: auto, auto, 40px 40px, 40px 40px, auto !important;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: linear-gradient(125deg, transparent 0 46%, rgba(0, 96, 176, .035) 46% 46.3%, transparent 46.3% 100%);
+}
+
+button,
+a,
+input,
+select,
+textarea { transition: color 140ms ease, background-color 140ms ease, border-color 140ms ease, box-shadow 140ms ease, transform 140ms ease; }
+
+:focus-visible {
+  outline: 3px solid rgba(8, 121, 209, .34) !important;
+  outline-offset: 2px !important;
+}
+
+.provider-kicker {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  min-height: 24px;
+  padding: 4px 9px;
+  border: 1px solid var(--atlas-edge);
+  border-radius: 999px;
+  background: var(--atlas-blue-050);
+  color: var(--atlas-blue-700);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: .09em;
+}
+
+.provider-modal-copy { color: #5b6d82 !important; line-height: 1.65; }
+.provider-selector-group { margin: 18px 0 14px; }
+.provider-modal-actions { display: grid; grid-template-columns: 1fr auto; gap: 10px; }
+[data-provider-help] { display: block; margin-top: 8px; color: #5b6d82; line-height: 1.5; }
+
+/* Shared atlas masthead */
+.gnb-header {
+  min-height: 68px !important;
+  padding: 10px clamp(14px, 2vw, 28px) !important;
+  border-bottom: 1px solid var(--atlas-edge) !important;
+  background: rgba(255, 255, 255, .82) !important;
+  box-shadow: 0 8px 28px rgba(0, 76, 140, .07) !important;
+  backdrop-filter: blur(22px) saturate(150%) !important;
+}
+
+.gnb-logo { gap: 12px !important; }
+.gnb-badge {
+  position: relative;
+  padding: 8px 11px !important;
+  border: 1px solid var(--atlas-edge) !important;
+  border-radius: 10px !important;
+  background: #fff !important;
+  color: var(--atlas-blue-700) !important;
+  letter-spacing: .05em;
+}
+
+.gnb-badge::after {
+  content: "";
+  position: absolute;
+  right: 5px;
+  bottom: 5px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--atlas-orange);
+}
+
+.gnb-title {
+  color: var(--atlas-navy) !important;
+  font-family: "Incheon Edu Himchan", "Pretendard", "Noto Sans KR", sans-serif !important;
+  font-size: 20px !important;
+}
+
+.gnb-nav {
+  gap: 4px !important;
+  padding: 5px !important;
+  border: 1px solid var(--atlas-edge) !important;
+  border-radius: 999px !important;
+  background: rgba(241, 248, 255, .78) !important;
+}
+
+.gnb-tab {
+  min-height: 38px !important;
+  padding: 8px 14px !important;
+  border: 0 !important;
+  border-radius: 999px !important;
+  color: #53677d !important;
+  font-weight: 800 !important;
+}
+
+.gnb-tab:hover,
+.gnb-tab.active {
+  background: #fff !important;
+  color: var(--atlas-blue-700) !important;
+  box-shadow: 0 5px 15px rgba(0, 76, 140, .11) !important;
+}
+
+.gnb-status-badge {
+  min-height: 38px !important;
+  padding: 8px 12px !important;
+  border: 1px solid var(--atlas-edge) !important;
+  border-radius: 999px !important;
+  background: #fff !important;
+  color: var(--atlas-navy) !important;
+}
+
+.gnb-status-dot { background: var(--atlas-orange) !important; }
+.gnb-status-dot.active { background: var(--atlas-green) !important; box-shadow: 0 0 0 5px rgba(0, 160, 96, .1) !important; }
+
+/* Operational map shell */
+.app-main {
+  background: transparent !important;
+}
+
+.sidebar {
+  width: clamp(350px, 30vw, 470px);
+  border-right: 1px solid var(--atlas-edge) !important;
+  background: rgba(255, 255, 255, .92) !important;
+  box-shadow: 20px 0 55px rgba(0, 76, 140, .08) !important;
+}
+
+.sidebar-header {
+  position: relative;
+  padding: 24px 24px 20px !important;
+  overflow: hidden;
+  border-bottom: 1px solid var(--atlas-edge) !important;
+  background:
+    radial-gradient(circle at 88% -10%, rgba(0, 176, 224, .19), transparent 52%),
+    linear-gradient(135deg, #fff 0%, #f1f8ff 100%) !important;
+}
+
+.sidebar-header::after {
+  content: "";
+  position: absolute;
+  width: 140px;
+  height: 140px;
+  right: -72px;
+  bottom: -90px;
+  border: 18px solid rgba(0, 96, 176, .06);
+  border-radius: 50%;
+}
+
+.sidebar-title {
+  position: relative;
+  z-index: 1;
+  max-width: 18ch;
+  color: var(--atlas-navy) !important;
+  font-family: "Incheon Edu Himchan", "Pretendard", "Noto Sans KR", sans-serif !important;
+  font-size: clamp(24px, 2.2vw, 31px) !important;
+  line-height: 1.16 !important;
+  letter-spacing: -.02em;
+  word-break: keep-all;
+}
+
+.sidebar-subtitle { position: relative; z-index: 1; color: #5b6d82 !important; line-height: 1.65 !important; word-break: keep-all; }
+.sidebar-content { padding: 18px 20px 28px !important; background: rgba(255,255,255,.86) !important; }
+
+.workflow-status { gap: 7px !important; }
+.workflow-status-chip {
+  min-height: 50px !important;
+  padding: 9px 10px !important;
+  border: 1px solid var(--atlas-edge) !important;
+  border-radius: 12px !important;
+  background: rgba(255, 255, 255, .86) !important;
+  box-shadow: inset 0 1px 0 #fff !important;
+}
+.workflow-status-chip strong { color: var(--atlas-blue-700) !important; }
+
+.workflow-panel {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px !important;
+  margin-bottom: 16px;
+}
+
+.workflow-step-card {
+  border: 1px solid var(--atlas-edge) !important;
+  border-radius: 14px !important;
+  background: var(--atlas-blue-050) !important;
+  box-shadow: none !important;
+}
+
+.workflow-step-head {
+  min-height: 42px !important;
+  padding: 9px 10px !important;
+  border: 0 !important;
+  background: transparent !important;
+  color: var(--atlas-navy) !important;
+  font-size: 12.5px !important;
+}
+
+.workflow-step-no {
+  width: 23px !important;
+  height: 23px !important;
+  background: #fff !important;
+  border: 1px solid var(--atlas-edge) !important;
+  color: var(--atlas-blue-700) !important;
+}
+
+.workflow-step-body { padding: 0 10px 10px !important; }
+.workflow-note { color: #617287 !important; }
+
+.card,
+.school-card,
+.place-card,
+.office-select-header {
+  border: 1px solid var(--atlas-edge) !important;
+  border-radius: 16px !important;
+  background: rgba(255, 255, 255, .9) !important;
+  box-shadow: 0 8px 24px rgba(0, 76, 140, .07), inset 0 1px 0 #fff !important;
+}
+
+.card { padding: 17px !important; }
+.card-title { color: var(--atlas-navy) !important; }
+.school-card,
+.place-card { padding: 15px !important; }
+.school-card:hover,
+.place-card:hover,
+.place-card.active {
+  border-color: rgba(8, 121, 209, .44) !important;
+  background: #f8fcff !important;
+  box-shadow: 0 14px 32px rgba(0, 76, 140, .12) !important;
+  transform: translateY(-1px);
+}
+
+.school-name,
+.place-card-name,
+.office-select-header strong { color: var(--atlas-navy) !important; }
+.school-meta,
+.place-card-desc,
+.place-card-meta { color: #607286 !important; }
+
+.supervisor-box,
+.designation-box {
+  border: 1px solid rgba(0, 96, 176, .11) !important;
+  border-radius: 12px !important;
+  background: var(--atlas-blue-050) !important;
+}
+.designation-input,
+.designation-badge { color: var(--atlas-blue-700) !important; border-color: var(--atlas-edge) !important; }
+.designation-badge { background: var(--atlas-blue-100) !important; }
+
+.badge-office,
+.badge-cat,
+.school-level-badge {
+  border: 1px solid var(--atlas-edge) !important;
+  background: var(--atlas-blue-050) !important;
+  color: var(--atlas-blue-700) !important;
+}
+
+.office-main,
+.office-ganghwa,
+.office-south,
+.office-north,
+.office-east,
+.office-west { background: var(--atlas-blue-050) !important; color: var(--atlas-blue-700) !important; }
+.badge-partner { background: #fff3e8 !important; color: #8b470c !important; border-color: rgba(240,128,32,.28) !important; }
+
+.checkbox-container { min-height: 40px; padding: 7px 8px; border-radius: 10px; }
+.checkbox-container:hover { background: var(--atlas-blue-050); }
+.checkbox-container input:checked + .custom-checkbox { background: var(--atlas-blue-500) !important; border-color: var(--atlas-blue-500) !important; }
+
+input[type="text"],
+input[type="search"],
+select,
+textarea {
+  min-height: 42px !important;
+  border: 1px solid var(--atlas-edge) !important;
+  border-radius: 11px !important;
+  background: rgba(247, 251, 255, .94) !important;
+  color: var(--atlas-navy) !important;
+}
+
+button {
+  min-height: 40px;
+  border-radius: 999px !important;
+  background: var(--atlas-navy) !important;
+  color: #fff !important;
+  font-weight: 800 !important;
+}
+button:hover { background: var(--atlas-blue-700) !important; transform: translateY(-1px); }
+.btn-secondary,
+.btn-save-sv,
+.map-popup-link-btn {
+  border: 1px solid var(--atlas-edge) !important;
+  background: #fff !important;
+  color: var(--atlas-navy) !important;
+}
+.btn-secondary:hover,
+.btn-save-sv:hover,
+.map-popup-link-btn:hover { background: var(--atlas-blue-050) !important; color: var(--atlas-blue-700) !important; }
+
+.map-viewport {
+  position: relative;
+  background:
+    radial-gradient(circle at 50% 45%, rgba(0, 176, 224, .18), transparent 34%),
+    linear-gradient(135deg, #e9f5ff, #f8fbff) !important;
+}
+
+.map-toolbar {
+  top: 18px !important;
+  left: 18px !important;
+  min-height: 58px !important;
+  padding: 9px 11px 9px 15px !important;
+  border: 1px solid var(--atlas-edge) !important;
+  border-radius: 16px !important;
+  background: rgba(255, 255, 255, .88) !important;
+  box-shadow: var(--atlas-command-shadow) !important;
+  backdrop-filter: blur(20px) saturate(145%) !important;
+}
+.map-toolbar strong { color: var(--atlas-navy) !important; }
+.map-toolbar span { color: #607286 !important; }
+
+.map-loader-cover { background: rgba(235, 246, 255, .82) !important; backdrop-filter: blur(18px); }
+.map-loader-card,
+.key-modal-content {
+  width: min(92vw, 500px) !important;
+  padding: clamp(24px, 4vw, 38px) !important;
+  border: 1px solid var(--atlas-edge) !important;
+  border-radius: 24px !important;
+  background: rgba(255, 255, 255, .94) !important;
+  color: var(--atlas-navy) !important;
+  box-shadow: var(--atlas-shadow) !important;
+}
+.map-loader-card h3,
+.key-modal-content h3 { margin: 12px 0 10px !important; color: var(--atlas-navy) !important; font-family: "Incheon Edu Himchan", "Pretendard", sans-serif; font-size: 26px !important; }
+.map-loader-card p { color: #5b6d82 !important; line-height: 1.65 !important; }
+.loader-signal { display: flex; gap: 5px; margin-bottom: 18px; }
+.loader-signal span { width: 9px; height: 9px; border-radius: 50%; background: var(--atlas-blue-500); }
+.loader-signal span:nth-child(2) { background: var(--atlas-green); }
+.loader-signal span:nth-child(3) { background: var(--atlas-orange); }
+
+.map-popup {
+  border: 1px solid var(--atlas-edge) !important;
+  border-radius: 16px !important;
+  background: rgba(255,255,255,.96) !important;
+  color: var(--atlas-navy) !important;
+  box-shadow: var(--atlas-command-shadow) !important;
+}
+
+.sidebar-resizer { width: 8px !important; background: linear-gradient(90deg, transparent, rgba(0,96,176,.08), transparent) !important; }
+
+/* Unified command workspace */
+.um-shell {
+  background:
+    radial-gradient(circle at 4% 8%, rgba(0,176,224,.11), transparent 24rem),
+    linear-gradient(90deg, var(--atlas-grid) 1px, transparent 1px),
+    linear-gradient(var(--atlas-grid) 1px, transparent 1px),
+    #f8fbff !important;
+  background-size: auto, 36px 36px, 36px 36px, auto !important;
+}
+
+.um-header {
+  min-height: 70px !important;
+  padding: 11px clamp(16px, 2.2vw, 32px) !important;
+  border-bottom: 1px solid var(--atlas-edge) !important;
+  background: rgba(255,255,255,.84) !important;
+  box-shadow: 0 8px 28px rgba(0,76,140,.07);
+  backdrop-filter: blur(22px) saturate(150%) !important;
+}
+
+.um-brand-mark {
+  width: 42px !important;
+  height: 42px !important;
+  border: 1px solid var(--atlas-edge);
+  border-radius: 12px !important;
+  background: #fff !important;
+  color: var(--atlas-blue-700) !important;
+  box-shadow: 0 8px 20px rgba(0,76,140,.1);
+}
+.um-brand strong { color: var(--atlas-navy) !important; font-size: 24px !important; }
+.um-brand span { color: #607286 !important; }
+.um-link-button,
+.um-button,
+.um-file-label {
+  min-height: 40px !important;
+  border: 1px solid var(--atlas-edge) !important;
+  border-radius: 999px !important;
+  background: #fff !important;
+  color: var(--atlas-navy) !important;
+  font-weight: 800 !important;
+  box-shadow: none !important;
+}
+.um-button-primary {
+  border-color: var(--atlas-navy) !important;
+  background: var(--atlas-navy) !important;
+  color: #fff !important;
+}
+.um-link-button:hover,
+.um-button:hover,
+.um-file-label:hover { border-color: rgba(8,121,209,.38) !important; background: var(--atlas-blue-050) !important; color: var(--atlas-blue-700) !important; transform: translateY(-1px); }
+.um-button-primary:hover { background: var(--atlas-blue-700) !important; color: #fff !important; }
+
+.um-toolbar {
+  position: relative;
+  z-index: 4;
+  margin: 14px clamp(14px, 1.8vw, 26px) 0 !important;
+  padding: 12px !important;
+  border: 1px solid var(--atlas-edge) !important;
+  border-radius: 18px !important;
+  background: rgba(255,255,255,.86) !important;
+  box-shadow: var(--atlas-command-shadow) !important;
+  backdrop-filter: blur(20px) saturate(145%) !important;
+}
+.um-search,
+.um-select,
+.um-input {
+  min-height: 42px !important;
+  border: 1px solid var(--atlas-edge) !important;
+  border-radius: 11px !important;
+  background: var(--atlas-blue-050) !important;
+  color: var(--atlas-navy) !important;
+}
+.um-search { border-radius: 999px !important; }
+.um-note { color: #607286 !important; }
+.um-status,
+.um-chip {
+  border: 1px solid var(--atlas-edge) !important;
+  background: #fff !important;
+  color: #52687f !important;
+}
+.um-status.is-ready,
+.um-chip.is-good { background: #e6f7ef !important; color: #087247 !important; border-color: rgba(0,160,96,.23) !important; }
+.um-chip.is-warn { background: #fff3e8 !important; color: #8b470c !important; border-color: rgba(240,128,32,.26) !important; }
+
+.um-main {
+  gap: 14px !important;
+  padding: 14px clamp(14px, 1.8vw, 26px) 22px !important;
+  align-items: start !important;
+}
+.um-map-area,
+.um-panel {
+  overflow: hidden;
+  border: 1px solid var(--atlas-edge) !important;
+  border-radius: 22px !important;
+  background: rgba(255,255,255,.9) !important;
+  box-shadow: 0 14px 38px rgba(0,76,140,.1) !important;
+}
+.um-map-area {
+  position: sticky !important;
+  top: 14px;
+  width: 100%;
+  height: calc(100dvh - 228px);
+  min-height: 620px !important;
+}
+.um-map-topbar,
+.um-panel-head {
+  padding: 13px 15px !important;
+  border-color: var(--atlas-edge) !important;
+  background: rgba(255,255,255,.9) !important;
+  backdrop-filter: blur(16px);
+}
+.um-map-area #map { background: linear-gradient(135deg, #e7f4ff, #f8fbff) !important; }
+.um-map-placeholder { background: rgba(235,246,255,.76) !important; backdrop-filter: blur(18px); }
+.um-key-card {
+  width: min(94%, 640px) !important;
+  padding: clamp(24px, 4vw, 38px) !important;
+  border: 1px solid var(--atlas-edge) !important;
+  border-radius: 24px !important;
+  background: rgba(255,255,255,.95) !important;
+  box-shadow: var(--atlas-shadow) !important;
+}
+.um-key-card h2 { margin-top: 12px !important; color: var(--atlas-navy) !important; font-family: "Incheon Edu Himchan", "Pretendard", sans-serif; font-size: clamp(24px, 3vw, 34px) !important; line-height: 1.18 !important; word-break: keep-all; }
+.um-key-form {
+  grid-template-columns: minmax(0, .82fr) minmax(0, 1.18fr) !important;
+  align-items: end !important;
+}
+.um-key-form label { display: grid; gap: 7px; min-width: 0; }
+.um-key-form .um-button { grid-column: 1 / -1; width: fit-content; }
+.um-panel {
+  display: block !important;
+  height: calc(100dvh - 228px);
+  min-height: 620px !important;
+  overflow-y: auto;
+  background: rgba(255,255,255,.93) !important;
+}
+.um-panel .um-list { max-height: 320px; }
+.um-connection-grid { min-width: 0; }
+.um-connection-grid > * {
+  min-width: 0;
+  max-width: 100%;
+}
+.um-connection-grid .um-select,
+.um-connection-grid .um-input { width: 100%; }
+.um-panel-title strong { color: var(--atlas-navy) !important; }
+.um-row {
+  margin: 0 12px 9px !important;
+  border: 1px solid rgba(0,96,176,.12) !important;
+  border-radius: 14px !important;
+  background: #fff !important;
+  box-shadow: 0 6px 18px rgba(0,76,140,.055) !important;
+}
+.um-row:hover { border-color: rgba(8,121,209,.36) !important; background: #f9fcff !important; }
+.um-row-main strong { color: var(--atlas-navy) !important; }
+.um-stat,
+.um-utility-card { border-color: var(--atlas-edge) !important; border-radius: 14px !important; background: var(--atlas-blue-050) !important; }
+.um-popup { border: 1px solid var(--atlas-edge) !important; border-radius: 16px !important; box-shadow: var(--atlas-command-shadow) !important; }
+
+/* Home / atlas launch surface */
+.site-shell { width: min(1280px, calc(100% - 48px)) !important; padding: 24px 0 44px !important; }
+.site-header {
+  min-height: 68px !important;
+  margin-bottom: 30px !important;
+  padding: 10px 12px 10px 14px;
+  border: 1px solid var(--atlas-edge);
+  border-radius: 20px;
+  background: rgba(255,255,255,.82);
+  box-shadow: var(--atlas-command-shadow);
+  backdrop-filter: blur(20px) saturate(140%);
+}
+.brand-mark { border-color: var(--atlas-edge) !important; border-radius: 12px !important; box-shadow: 0 8px 20px rgba(0,76,140,.1); }
+.brand small { color: var(--atlas-blue-700) !important; letter-spacing: .08em; }
+.brand strong { color: var(--atlas-navy) !important; font-size: 21px !important; }
+.text-link { min-height: 44px !important; border-color: var(--atlas-edge) !important; border-radius: 999px !important; background: #fff !important; color: var(--atlas-navy) !important; }
+.text-link:first-child { background: var(--atlas-navy) !important; color: #fff !important; border-color: var(--atlas-navy) !important; }
+.text-link:hover { transform: translateY(-1px); box-shadow: 0 8px 18px rgba(0,76,140,.12); }
+
+.hero-grid { grid-template-columns: minmax(0, .82fr) minmax(500px, 1.18fr) !important; gap: 28px !important; }
+.hero-copy {
+  min-height: 620px !important;
+  padding: clamp(26px, 4vw, 56px) clamp(4px, 2vw, 24px) 18px !important;
+}
+.eyebrow { border-color: var(--atlas-edge) !important; border-radius: 999px !important; background: var(--atlas-blue-050) !important; color: var(--atlas-blue-700) !important; letter-spacing: .06em; }
+h1 {
+  max-width: 10.5ch !important;
+  color: var(--atlas-navy) !important;
+  font-family: "Incheon Edu Himchan", "Pretendard", "Noto Sans KR", sans-serif !important;
+  font-size: clamp(48px, 5.4vw, 76px) !important;
+  line-height: 1.02 !important;
+  letter-spacing: -.035em !important;
+  word-break: keep-all;
+}
+.lead { max-width: 36rem !important; color: #536a80 !important; font-size: 17px !important; }
+.quick-launch { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 12px !important; }
+.launch-tile {
+  min-height: 118px !important;
+  padding: 17px !important;
+  border-color: var(--atlas-edge) !important;
+  border-radius: 17px !important;
+  background: rgba(255,255,255,.86) !important;
+  box-shadow: 0 8px 24px rgba(0,76,140,.07) !important;
+}
+.launch-tile:first-child { grid-column: 1 / -1; min-height: 104px !important; background: linear-gradient(135deg, var(--atlas-navy), #0b4779) !important; }
+.launch-tile:first-child strong,
+.launch-tile:first-child span { color: #fff !important; }
+.launch-tile:hover { border-color: rgba(8,121,209,.46) !important; box-shadow: 0 16px 34px rgba(0,76,140,.13) !important; }
+.launch-tile strong { color: var(--atlas-navy) !important; }
+.launch-tile span { color: #607286 !important; }
+
+.map-stage {
+  min-height: 620px !important;
+  border: 1px solid var(--atlas-edge) !important;
+  border-radius: 30px !important;
+  background: #eef8ff !important;
+  box-shadow: var(--atlas-shadow) !important;
+}
+.map-stage::before {
+  background:
+    radial-gradient(ellipse at 38% 42%, rgba(0,176,224,.17), transparent 32%),
+    repeating-radial-gradient(ellipse at 48% 50%, transparent 0 44px, rgba(0,96,176,.075) 45px 46px),
+    linear-gradient(112deg, transparent 0 54%, rgba(0,96,176,.07) 54% 54.4%, transparent 54.4% 100%),
+    #f6fbff !important;
+}
+.map-water { background: linear-gradient(180deg, rgba(0,176,224,.2), rgba(0,96,176,.05)) !important; border-left-color: rgba(0,96,176,.16) !important; }
+.route-line {
+  height: 3px !important;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--atlas-orange), var(--atlas-blue-500), #00b0e0) !important;
+  box-shadow: 0 0 0 7px rgba(8,121,209,.07), 0 0 26px rgba(8,121,209,.2) !important;
+  transform-origin: left center;
+  animation: atlas-route 900ms cubic-bezier(.22,.8,.2,1) both;
+}
+.pin { border: 3px solid #fff !important; box-shadow: 0 14px 28px rgba(0,76,140,.2) !important; }
+.pin.school { background: var(--atlas-orange) !important; }
+.pin.infra { background: var(--atlas-blue-500) !important; }
+.map-label,
+.metric,
+.deploy-note {
+  border-color: var(--atlas-edge) !important;
+  border-radius: 16px !important;
+  background: rgba(255,255,255,.86) !important;
+  box-shadow: var(--atlas-command-shadow) !important;
+  backdrop-filter: blur(18px) saturate(140%);
+}
+.map-label strong,
+.metric strong,
+.deploy-note strong { color: var(--atlas-navy) !important; }
+.map-label span,
+.metric span,
+.deploy-note span { color: #607286 !important; }
+.deploy-strip { grid-template-columns: repeat(3, minmax(0,1fr)) !important; gap: 12px !important; }
+
+@keyframes atlas-route {
+  from { opacity: 0; transform: rotate(-18deg) scaleX(.08); }
+  to { opacity: 1; transform: rotate(-18deg) scaleX(1); }
+}
+
+@media (max-width: 1100px) {
+  .gnb-header { align-items: flex-start !important; flex: 0 0 auto !important; }
+  .gnb-nav { order: 3; width: 100%; overflow-x: auto; flex-wrap: nowrap !important; justify-content: flex-start !important; }
+  .gnb-tab { flex: 0 0 auto; }
+  .workflow-panel { grid-template-columns: 1fr; }
+  .um-map-area { position: relative !important; top: auto; height: 58dvh; min-height: 520px !important; }
+  .um-panel { height: auto; min-height: 0 !important; overflow: visible; }
+  .um-panel .um-list { max-height: 520px; }
+  .hero-grid { grid-template-columns: 1fr !important; }
+  .hero-copy { min-height: auto !important; }
+  .map-stage { min-height: 560px !important; }
+}
+
+@media (min-width: 1101px) {
+  html.um-page-root,
+  body.um-page { height: 100%; overflow: hidden; }
+  .um-page .um-shell { height: 100dvh; min-height: 0; }
+  .um-page .um-main { min-height: 0; }
+  .um-page .um-map-area,
+  .um-page .um-panel { height: 100%; min-height: 0 !important; }
+}
+
+@media (max-width: 768px) {
+  .gnb-header { height: auto !important; min-height: 58px !important; padding: 8px 10px !important; flex-shrink: 0 !important; }
+  .gnb-title { font-size: 17px !important; }
+  .gnb-status-badge { width: auto !important; }
+  .app-main { height: auto !important; min-height: 0 !important; flex: 1 1 auto !important; }
+  .sidebar { width: 100% !important; max-height: none !important; box-shadow: none !important; }
+  .sidebar-header { padding: 20px 16px !important; }
+  .sidebar-content { padding: 15px 14px 24px !important; }
+  .workflow-panel { grid-template-columns: repeat(3, minmax(0, 1fr)); overflow-x: auto; }
+  .workflow-step-card { min-width: 128px; }
+  .map-viewport { min-height: 48svh !important; }
+  .map-loader-cover { align-items: flex-start !important; overflow-y: auto; padding: 18px 10px; }
+  .map-loader-card { margin: 0 auto; padding: 24px 18px !important; }
+  .map-toolbar { top: 10px !important; left: 10px !important; width: calc(100% - 20px) !important; }
+  .provider-modal-actions { grid-template-columns: 1fr; }
+  .um-header { min-height: 58px !important; padding: 8px 12px !important; }
+  .um-brand strong { font-size: 19px !important; }
+  .um-brand > span:last-child > span { display: none !important; }
+  .um-header-actions { overflow-x: auto; flex-wrap: nowrap !important; }
+  .um-header-actions > * { flex: 0 0 auto; }
+  .um-toolbar { margin: 10px 10px 0 !important; border-radius: 15px !important; }
+  .um-main { padding: 10px !important; grid-template-rows: auto auto !important; }
+  .um-map-area,
+  .um-panel { border-radius: 18px !important; }
+  .um-map-area { height: auto !important; min-height: 760px !important; position: relative !important; }
+  .um-map-placeholder { overflow-y: auto !important; align-items: flex-start !important; padding: 18px 8px !important; }
+  .um-key-form { grid-template-columns: 1fr !important; }
+  .um-key-form .um-button { width: 100%; }
+  .site-shell { width: min(100% - 24px, 760px) !important; padding-top: 12px !important; }
+  .site-header { align-items: stretch !important; padding: 10px !important; }
+  .site-actions { overflow-x: auto; }
+  .text-link { flex: 0 0 auto !important; }
+  h1 { font-size: clamp(42px, 14vw, 60px) !important; }
+  .quick-launch { grid-template-columns: 1fr !important; }
+  .launch-tile:first-child { grid-column: auto; }
+  .map-stage { min-height: 640px !important; border-radius: 22px !important; }
+  .deploy-strip { grid-template-columns: 1fr !important; }
+}
+
+@media (max-width: 480px) {
+  .gnb-logo { min-width: 0; }
+  .gnb-badge { display: none; }
+  .gnb-key-info { width: auto !important; }
+  .gnb-status-badge { font-size: 11px !important; }
+  .workflow-status { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
+  .map-toolbar { align-items: stretch !important; }
+  .map-toolbar button { width: 100% !important; }
+  .site-header { border-radius: 16px; }
+  .brand strong { font-size: 18px !important; }
+  h1 { font-size: 44px !important; }
+  .lead { font-size: 15px !important; }
+  .map-label { left: 12px !important; right: 12px !important; top: 12px !important; }
+  .map-panel { left: 12px !important; right: 12px !important; bottom: 12px !important; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+}

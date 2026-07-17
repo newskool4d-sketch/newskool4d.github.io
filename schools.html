@@ -168,6 +168,7 @@
       margin-bottom: 16px;
     }
   </style>
+  <link rel="stylesheet" href="atlas-theme.css">
 </head>
 <body>
 
@@ -328,18 +329,18 @@
           </div>
         </div>
 
-        <!-- 4. 실시간 카카오 키워드 학교 추가 검색 -->
+        <!-- 4. 지도 공급자 기반 학교 주소 검색 -->
         <div class="card" id="search-card" style="opacity: 0.5; pointer-events: none; transition: opacity 0.3s ease;">
           <div class="card-title">
             <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-            카카오 통합 학교 검색
+            인천 학교 주소 검색
           </div>
           <form class="search-box-row" id="school-search-form">
             <input type="text" id="school-search-input" placeholder="학교명 입력 (예: 부평고)">
             <button type="submit" data-action="search-school" style="width: auto; padding: 10px 14px;">검색</button>
           </form>
           <div id="school-search-status" data-status-host style="margin-top: 10px;"></div>
-          <div style="font-size: 11.5px; color: var(--text-sub);">인천 전체 지역 내 학교를 실시간 검색해 핀으로 추가할 수 있습니다.</div>
+          <div style="font-size: 11.5px; color: var(--text-sub);">선택한 지도 공급자의 주소 검색으로 인천 학교 위치를 찾아 목록에 추가합니다.</div>
         </div>
 
         <!-- 5. 학교 리스트 -->
@@ -372,6 +373,7 @@
     </div>
   </div>
 
+  <script src="js/map-provider.js"></script>
   <script src="shared.js"></script>
   <script>
     // 관심 학교 저장 — js/favorites.js와 같은 localStorage 키·형식을 공유해 통합지도와 상호 인식된다.
@@ -548,7 +550,7 @@
 
       await loadSchoolData();
 
-      // 카카오 맵 기동
+      // 선택된 지도 공급자 기동
       loadKakaoSDK(() => {
         initSchoolsMap();
       });
@@ -770,11 +772,11 @@
     function initSchoolsMap() {
       const container = document.getElementById('map');
       const options = {
-        center: new kakao.maps.LatLng(37.52, 126.58),
+        center: new eduMaps.maps.LatLng(37.52, 126.58),
         level: 8
       };
       
-      mapInstance = new kakao.maps.Map(container, options);
+      mapInstance = new eduMaps.maps.Map(container, options);
       applyStandardKakaoMapSettings(mapInstance);
 
       // 사이드바 폭 드래그 커스터마이징 기능 활성화
@@ -783,27 +785,27 @@
 
       // 본청 및 5대 지원청 마커 즉시 렌더링 (하드코딩 좌표 사용 — Geocoder API 호출 없음)
       OFFICE_PRESETS.forEach(office => {
-        const coords = new kakao.maps.LatLng(office.lat, office.lng);
+        const coords = new eduMaps.maps.LatLng(office.lat, office.lng);
 
         // 본청은 레드 마커, 지원청은 스타 마커로 차별화
         let imageSrc = 'https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/markerStar.png';
-        let imageSize = new kakao.maps.Size(24, 35);
+        let imageSize = new eduMaps.maps.Size(24, 35);
 
         if (office.code === "main") {
           imageSrc = 'https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/marker_red.png';
-          imageSize = new kakao.maps.Size(31, 35);
+          imageSize = new eduMaps.maps.Size(31, 35);
         }
 
-        const markerImage = new kakao.maps.MarkerImage(imageSrc, imageSize);
+        const markerImage = new eduMaps.maps.MarkerImage(imageSrc, imageSize);
 
-        const marker = new kakao.maps.Marker({
+        const marker = new eduMaps.maps.Marker({
           position: coords,
           map: mapInstance,
           image: markerImage,
           title: office.name
         });
 
-        kakao.maps.event.addListener(marker, 'click', () => {
+        eduMaps.maps.event.addListener(marker, 'click', () => {
           selectOffice(office.code);
         });
 
@@ -915,7 +917,7 @@
       badge.textContent = office.badgeName;
       updateSchoolWorkflowStatus(0);
 
-      if (!mapInstance || !window.kakao || !window.kakao.maps || !window.kakao.maps.services) {
+      if (!mapInstance || !window.eduMaps || !window.eduMaps.maps || !window.eduMaps.maps.services) {
         return;
       }
 
@@ -968,7 +970,7 @@
 
       renderSchoolLoadingState(officeSchools.length);
 
-      const geocoder = new kakao.maps.services.Geocoder();
+      const geocoder = new eduMaps.maps.services.Geocoder();
       const geoFailedNames = [];
 
       const finishOne = () => {
@@ -983,11 +985,11 @@
       };
 
       const addSchoolMarker = (sch, coords) => {
-        const marker = new kakao.maps.Marker({
+        const marker = new eduMaps.maps.Marker({
           position: coords,
           map: mapInstance
         });
-        kakao.maps.event.addListener(marker, 'click', () => {
+        eduMaps.maps.event.addListener(marker, 'click', () => {
           focusSchool(sch.id);
         });
         schoolMarkers[sch.id] = { marker: marker, coords: coords, data: sch };
@@ -1003,14 +1005,14 @@
         // 사전계산 좌표(data/schools.json)가 있으면 지오코딩 없이 즉시 표시.
         // 수백 건 동시 addressSearch는 카카오 rate limit에 걸려 마커가 누락·오배치된다.
         if (Number.isFinite(sch.lat) && Number.isFinite(sch.lng)) {
-          addSchoolMarker(sch, new kakao.maps.LatLng(sch.lat, sch.lng));
+          addSchoolMarker(sch, new eduMaps.maps.LatLng(sch.lat, sch.lng));
           finishOne();
           return;
         }
 
         geocoder.addressSearch(sch.address, (result, status) => {
-          if (status === kakao.maps.services.Status.OK) {
-            addSchoolMarker(sch, new kakao.maps.LatLng(result[0].y, result[0].x));
+          if (status === eduMaps.maps.services.Status.OK) {
+            addSchoolMarker(sch, new eduMaps.maps.LatLng(result[0].y, result[0].x));
           } else {
             geoFailedNames.push(sch.name);
           }
@@ -1194,7 +1196,7 @@
         </div>
       `;
 
-      activeOverlay = new kakao.maps.CustomOverlay({
+      activeOverlay = new eduMaps.maps.CustomOverlay({
         content: popupDom,
         position: item.coords,
         xAnchor: 0.5,
@@ -1224,14 +1226,12 @@
       const officeCoords = officeMarkers
         .filter(item => !selectedOffice || item.code === selectedOffice)
         .map(item => item.coords);
-      const fallback = new kakao.maps.LatLng(37.52, 126.58);
+      const fallback = new eduMaps.maps.LatLng(37.52, 126.58);
 
       fitKakaoMapToCoords(mapInstance, schoolCoords.length ? schoolCoords : officeCoords, fallback, 8);
     }
 
-    /**
-     * 카카오 로컬 검색 API를 통해 관내 검색 후 핀으로 추가
-     */
+    /** 선택된 지도 공급자의 검색 서비스로 관내 학교를 찾아 핀으로 추가합니다. */
     function searchSchoolDynamic() {
       const searchInput = document.getElementById("school-search-input");
 
@@ -1248,15 +1248,15 @@
         return;
       }
 
-      if (!window.kakao?.maps?.services) {
+      if (!window.eduMaps?.maps?.services) {
         showSchoolSearchStatus("지도 서비스가 준비되지 않았습니다. API 키를 입력하고 다시 시도해 주세요.", "error");
         return;
       }
 
       clearSchoolSearchStatus();
-      const ps = new kakao.maps.services.Places();
+      const ps = new eduMaps.maps.services.Places();
       ps.keywordSearch(`${query} 인천`, (data, status) => {
-        if (status === kakao.maps.services.Status.OK && Array.isArray(data) && data.length) {
+        if (status === eduMaps.maps.services.Status.OK && Array.isArray(data) && data.length) {
           const place = data[0];
           
           let detectedLevel = "elem";

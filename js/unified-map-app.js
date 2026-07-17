@@ -5,8 +5,7 @@ import { buildImportPreviewFromArrayBuffer, buildImportPreviewFromCsv } from "./
 import { exportDataset, filterInstitutions, loadAllInstitutions, loadConnections, mergeImportedInstitutions } from "./institution-repository.js";
 import { createInstitutionMapLayer, filterRowsByMarkerLayers } from "./map-layers.js";
 
-const KAKAO_KEY_STORAGE = "incheon_kakao_js_key";
-const KAKAO_SDK_ID = "kakao-map-sdk-unified";
+const MAP_PROVIDER = globalThis.IncheonMapProvider;
 const INCHEON_CENTER = Object.freeze({ lat: 37.4563, lng: 126.7052 });
 
 const state = {
@@ -47,21 +46,28 @@ const downloadJson = (filename, data) => {
   URL.revokeObjectURL(url);
 };
 
-const keyStatus = () => text(localStorage.getItem(KAKAO_KEY_STORAGE));
+const selectedProvider = () => MAP_PROVIDER.currentProvider();
+const providerMeta = () => MAP_PROVIDER.providerMeta(selectedProvider());
+const keyStatus = () => text(MAP_PROVIDER.getCredential(selectedProvider()));
 
 const renderKeyState = (message = "") => {
   const key = keyStatus();
+  const meta = providerMeta();
   const status = $("#key-status");
   const badge = $("#map-key-badge");
-  const input = $("#kakao-key-input");
+  const input = $("#map-credential-input");
+  const providerSelect = $("#map-provider-select");
   if (status) {
-    // 키 값은 일부라도 화면에 노출하지 않는다 — 저장 여부만 표시.
-    status.textContent = key ? "JavaScript 키 저장됨" : "카카오 JavaScript 키 미등록";
+    status.textContent = key ? `${meta.badge} 연결 준비` : `${meta.badge} 설정 필요`;
     status.classList.toggle("is-ready", Boolean(key));
   }
-  if (badge) badge.textContent = key ? "지도 SDK 대기" : "키 필요";
+  if (badge) badge.textContent = key ? `${meta.badge} SDK 대기` : `${meta.badge} 정보 필요`;
   badge?.classList.toggle("is-ready", Boolean(key));
   if (input && document.activeElement !== input) input.value = key;
+  if (providerSelect && document.activeElement !== providerSelect) providerSelect.value = selectedProvider();
+  setText("#map-credential-label", meta.credentialLabel);
+  setText("#provider-help", `${meta.domainHelp} Client Secret은 입력하지 마세요.`);
+  if (input) input.placeholder = meta.credentialPlaceholder;
   if (message) setText("#key-message", message);
 };
 
@@ -182,47 +188,35 @@ const handleImport = async (file) => {
   setText("#import-message", `${preview.counts.valid}개 행을 가져왔습니다. 마커 생성과 연결선 렌더링은 다음 단계에서 처리됩니다.`);
 };
 
-const loadKakaoSdk = (key) => new Promise((resolve, reject) => {
-  if (globalThis.kakao?.maps) {
-    globalThis.kakao.maps.load(resolve);
-    return;
-  }
-  document.getElementById(KAKAO_SDK_ID)?.remove();
-  const script = document.createElement("script");
-  script.id = KAKAO_SDK_ID;
-  script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${encodeURIComponent(key)}&autoload=false&libraries=services,clusterer,drawing`;
-  script.onload = () => globalThis.kakao?.maps ? globalThis.kakao.maps.load(resolve) : reject(new Error("Kakao maps object missing."));
-  script.onerror = () => reject(new Error("Kakao SDK failed to load."));
-  document.head.appendChild(script);
-});
-
 const initializeMap = async () => {
   const key = keyStatus();
+  const provider = selectedProvider();
+  const meta = providerMeta();
   renderKeyState();
   if (!key || state.map || state.mapInitRequested) return;
   state.mapInitRequested = true;
-  setText("#map-state-text", "카카오 지도 SDK를 불러오는 중입니다.");
+  setText("#map-state-text", `${meta.name} SDK를 불러오는 중입니다.`);
   try {
-    await loadKakaoSdk(key);
+    const mapSdk = await MAP_PROVIDER.load({ provider, credential: key });
     const mapNode = $("#map");
-    state.map = new kakao.maps.Map(mapNode, {
-      center: new kakao.maps.LatLng(INCHEON_CENTER.lat, INCHEON_CENTER.lng),
+    state.map = new mapSdk.maps.Map(mapNode, {
+      center: new mapSdk.maps.LatLng(INCHEON_CENTER.lat, INCHEON_CENTER.lng),
       level: 8,
     });
-    state.map.addControl(new kakao.maps.ZoomControl(), kakao.maps.ControlPosition.RIGHT);
+    state.map.addControl(new mapSdk.maps.ZoomControl(), mapSdk.maps.ControlPosition.RIGHT);
     state.mapLayer = createInstitutionMapLayer({
-      kakao,
+      mapSdk,
       map: state.map,
       elements: { invalidList: $("#map-invalid-list") },
     });
     $("#map-placeholder")?.classList.add("is-hidden");
     setText("#map-state-text", "기본 지도가 준비되었습니다. 현재 필터의 기관 마커를 표시합니다.");
-    setText("#map-key-badge", "지도 준비");
+    setText("#map-key-badge", `${meta.badge} 지도 준비`);
     syncMarkerLayer(state.visibleRows);
-    state.connectionManager?.setMap({ kakao, map: state.map });
+    state.connectionManager?.setMap({ mapSdk, map: state.map });
   } catch (error) {
     state.mapInitRequested = false;
-    setText("#map-state-text", "지도 SDK를 불러오지 못했습니다. 키와 허용 도메인을 확인해 주세요.");
+    setText("#map-state-text", `${meta.name}를 불러오지 못했습니다. 연결 정보와 등록 도메인을 확인해 주세요.`);
   }
 };
 
@@ -269,10 +263,14 @@ const bindEvents = () => {
     event.preventDefault();
     $("#import-file")?.click();
   });
-  $("#save-kakao-key")?.addEventListener("click", () => {
-    localStorage.setItem(KAKAO_KEY_STORAGE, text($("#kakao-key-input")?.value));
-    renderKeyState("JavaScript 키를 이 브라우저 저장소에 저장했습니다. 지도 초기화를 다시 시도합니다.");
-    initializeMap();
+  $("#map-provider-select")?.addEventListener("change", (event) => {
+    MAP_PROVIDER.setProvider(event.target.value);
+    renderKeyState();
+  });
+  $("#save-map-credential")?.addEventListener("click", () => {
+    const provider = MAP_PROVIDER.setProvider($("#map-provider-select")?.value);
+    MAP_PROVIDER.setCredential(provider, text($("#map-credential-input")?.value));
+    window.location.reload();
   });
   $("#export-data")?.addEventListener("click", () => {
     const connections = loadConnections({ storage: localStorage }).value.connections;
