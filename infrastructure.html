@@ -75,6 +75,7 @@
       color: var(--teal-light);
     }
   </style>
+  <link rel="stylesheet" href="atlas-theme.css">
 </head>
 <body>
 
@@ -202,13 +203,14 @@
           <strong>교육 기관 위치</strong>
           <span id="infra-map-summary">유형·권역 필터 기준</span>
         </div>
-        <button type="button" class="btn-secondary" id="fit-infra-btn" disabled aria-disabled="true" title="카카오 JavaScript 키를 등록하면 지도 기능이 활성화됩니다.">전체 보기</button>
+        <button type="button" class="btn-secondary" id="fit-infra-btn" disabled aria-disabled="true" title="지도 연결 정보를 등록하면 지도 기능이 활성화됩니다.">전체 보기</button>
       </div>
       <div id="map"></div>
     </div>
   </div>
 
   <!-- Shared JavaScript Common Library -->
+  <script src="js/map-provider.js"></script>
   <script src="shared.js"></script>
   
   <script>
@@ -612,7 +614,7 @@
       fitButton.setAttribute("aria-disabled", String(!isInfrastructureMapReady));
       fitButton.title = isInfrastructureMapReady
         ? "현재 필터 기준 기관 위치를 지도에 맞춰 표시합니다."
-        : "카카오 JavaScript 키를 등록하면 지도 기능이 활성화됩니다.";
+        : `${getActiveProviderMeta().credentialLabel}를 등록하면 지도 기능이 활성화됩니다.`;
     }
 
     // 2. 초기 기동 함수
@@ -627,9 +629,10 @@
       updateInfrastructureMapAvailability();
 
       if (!getCachedKakaoKey()) {
+        const providerInfo = getActiveProviderMeta();
         createLoaderCover(
-          "카카오 JavaScript 키 등록 필요",
-          "기관 목록은 먼저 확인할 수 있습니다. 지도 이동과 위치 마커를 보려면 카카오 Developers에서 발급한 JavaScript 키를 등록해주세요."
+          `${providerInfo.name} 연결 정보가 필요합니다`,
+          `기관 목록은 먼저 확인할 수 있습니다. 지도 이동과 위치 마커를 보려면 ${providerInfo.credentialLabel}를 등록해 주세요.`
         );
         return;
       }
@@ -667,7 +670,7 @@
       const lng = parseFloat(params.get('lng'));
       const z = parseInt(params.get('z'), 10);
       const hasMapState = !isNaN(lat) && !isNaN(lng);
-      if (hasMapState && mapInstance) mapInstance.setCenter(new kakao.maps.LatLng(lat, lng));
+      if (hasMapState && mapInstance) mapInstance.setCenter(new eduMaps.maps.LatLng(lat, lng));
       if (!isNaN(z) && mapInstance) mapInstance.setLevel(z);
       return hasMapState;
     }
@@ -713,14 +716,14 @@
 
     function registerInfrastructureMarker(place, coords) {
       let markerImageUrl = null;
-      let markerImageSize = new kakao.maps.Size(31, 35);
-      let markerImageOffset = new kakao.maps.Point(15, 35);
+      let markerImageSize = new eduMaps.maps.Size(31, 35);
+      let markerImageOffset = new eduMaps.maps.Point(15, 35);
       if (place.category === 'isec') {
         markerImageUrl = 'https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/marker_yellow.png';
       } else if (place.category === 'office') {
         markerImageUrl = 'https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/markerStar.png';
-        markerImageSize = new kakao.maps.Size(24, 35);
-        markerImageOffset = new kakao.maps.Point(12, 35);
+        markerImageSize = new eduMaps.maps.Size(24, 35);
+        markerImageOffset = new eduMaps.maps.Point(12, 35);
       } else if (place.category === 'direct') {
         markerImageUrl = 'https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/marker_red.png';
       }
@@ -731,7 +734,7 @@
       };
 
       if (markerImageUrl) {
-        const markerImage = new kakao.maps.MarkerImage(
+        const markerImage = new eduMaps.maps.MarkerImage(
           markerImageUrl,
           markerImageSize,
           { offset: markerImageOffset }
@@ -739,8 +742,8 @@
         markerOptions.image = markerImage;
       }
 
-      const marker = new kakao.maps.Marker(markerOptions);
-      kakao.maps.event.addListener(marker, 'click', () => {
+      const marker = new eduMaps.maps.Marker(markerOptions);
+      eduMaps.maps.event.addListener(marker, 'click', () => {
         focusPlace(place.id);
       });
 
@@ -764,11 +767,11 @@
     function initInfrastructureMap() {
       const container = document.getElementById('map');
       const options = {
-        center: new kakao.maps.LatLng(37.565, 126.54),
+        center: new eduMaps.maps.LatLng(37.565, 126.54),
         level: 8
       };
       
-      mapInstance = new kakao.maps.Map(container, options);
+      mapInstance = new eduMaps.maps.Map(container, options);
       isInfrastructureMapReady = true;
       applyStandardKakaoMapSettings(mapInstance);
       updateInfrastructureMapAvailability();
@@ -776,12 +779,12 @@
       initSidebarResizer(mapInstance);
       document.getElementById("fit-infra-btn").addEventListener("click", fitPlacesView);
 
-      kakao.maps.event.addListener(mapInstance, 'idle', () => {
+      eduMaps.maps.event.addListener(mapInstance, 'idle', () => {
         clearTimeout(_infraIdleTimer);
         _infraIdleTimer = setTimeout(saveInfraUrlState, 600);
       });
 
-      const geocoder = new kakao.maps.services.Geocoder();
+      const geocoder = new eduMaps.maps.services.Geocoder();
       let pendingCount = INFRA_DATA.length;
       const geoFailedNames = [];
 
@@ -799,15 +802,15 @@
 
       INFRA_DATA.forEach(place => {
         if (Number.isFinite(place.lat) && Number.isFinite(place.lng)) {
-          const coords = new kakao.maps.LatLng(place.lat, place.lng);
+          const coords = new eduMaps.maps.LatLng(place.lat, place.lng);
           registerInfrastructureMarker(place, coords);
           finishPlace();
           return;
         }
 
         geocoder.addressSearch(place.address, (result, status) => {
-          if (status === kakao.maps.services.Status.OK) {
-            const coords = new kakao.maps.LatLng(result[0].y, result[0].x);
+          if (status === eduMaps.maps.services.Status.OK) {
+            const coords = new eduMaps.maps.LatLng(result[0].y, result[0].x);
             registerInfrastructureMarker(place, coords);
           } else {
             geoFailedNames.push(place.name);
@@ -856,7 +859,7 @@
 
     function fitPlacesView() {
       if (!mapInstance) return;
-      const fallback = new kakao.maps.LatLng(37.565, 126.54);
+      const fallback = new eduMaps.maps.LatLng(37.565, 126.54);
       const coords = visiblePlaceCoords();
       const allCoords = Object.values(markersMap).map(item => item.coords);
       fitKakaoMapToCoords(mapInstance, coords.length ? coords : allCoords, fallback, 8);
@@ -965,7 +968,7 @@
       if (!mapInstance) {
         showInlineStatus(
           document.getElementById("place-list-dom"),
-          "기관 목록은 먼저 확인할 수 있습니다. 카카오 JavaScript 키를 등록하면 지도 이동과 상세 위치 팝업을 사용할 수 있습니다.",
+          `기관 목록은 먼저 확인할 수 있습니다. ${getActiveProviderMeta().credentialLabel}를 등록하면 지도 이동과 상세 위치 팝업을 사용할 수 있습니다.`,
           "info"
         );
         return;
@@ -1023,7 +1026,7 @@
       `;
 
       // 4. 오버레이 인스턴스화 및 맵 로드
-      activeOverlay = new kakao.maps.CustomOverlay({
+      activeOverlay = new eduMaps.maps.CustomOverlay({
         content: popupDom,
         position: item.coords,
         xAnchor: 0.5,

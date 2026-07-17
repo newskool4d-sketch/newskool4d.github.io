@@ -45,14 +45,14 @@ const createFakeKakao = () => {
       this.map = map;
     }
   }
-  return { created, kakao: { maps: { LatLng, Polyline } } };
+  return { created, mapSdk: { maps: { LatLng, Polyline } } };
 };
 
 test("creates red and blue connections, persists, reloads, exports, imports, and deletes", () => {
   // Given: three mappable institutions, fake localStorage, and fake Kakao Polyline support.
   const storage = createStorage();
-  const { kakao, created } = createFakeKakao();
-  const manager = createConnectionManager({ kakao, map: { id: "map" }, storage });
+  const { mapSdk, created } = createFakeKakao();
+  const manager = createConnectionManager({ mapSdk, map: { id: "map" }, storage });
 
   // When: two valid connection drafts are created, saved, exported, reloaded, imported, and one is deleted.
   manager.refreshInstitutions(institutions);
@@ -76,7 +76,7 @@ test("creates red and blue connections, persists, reloads, exports, imports, and
   assert.equal(manager.add(blue).ok, true);
   const exported = manager.exportJson();
   manager.destroy();
-  const reloaded = createConnectionManager({ kakao, map: { id: "map2" }, storage });
+  const reloaded = createConnectionManager({ mapSdk, map: { id: "map2" }, storage });
   reloaded.refreshInstitutions(institutions);
   const imported = reloaded.importJson(exported);
   const deleted = reloaded.delete(red.id);

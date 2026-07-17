@@ -96,7 +96,7 @@ const makeFakeKakao = ({ clusterer = true } = {}) => {
 
   return {
     created,
-    kakao: {
+    mapSdk: {
       maps: {
         LatLng,
         LatLngBounds,
@@ -122,9 +122,9 @@ const makeMap = () => ({
 
 test("renders 1000 synthetic pre-geocoded institutions through the Kakao clusterer", () => {
   // Given: a fake Kakao namespace with MarkerClusterer and 1000 finite-coordinate rows.
-  const { kakao, created } = makeFakeKakao();
+  const { mapSdk, created } = makeFakeKakao();
   const map = makeMap();
-  const layer = createInstitutionMapLayer({ kakao, map });
+  const layer = createInstitutionMapLayer({ mapSdk, map });
 
   // When: the marker layer syncs the rows.
   const result = layer.sync(makeRows(1000));
@@ -139,8 +139,8 @@ test("renders 1000 synthetic pre-geocoded institutions through the Kakao cluster
 
 test("keeps repeated syncs duplicate-free when filters or imports refresh", () => {
   // Given: an existing layer that already rendered a dense filtered set.
-  const { kakao, created } = makeFakeKakao();
-  const layer = createInstitutionMapLayer({ kakao, map: makeMap() });
+  const { mapSdk, created } = makeFakeKakao();
+  const layer = createInstitutionMapLayer({ mapSdk, map: makeMap() });
   const rows = makeRows(1000);
   layer.sync(rows);
 
@@ -155,9 +155,9 @@ test("keeps repeated syncs duplicate-free when filters or imports refresh", () =
 
 test("excludes invalid coordinates and renders an invalid-coordinate list", () => {
   // Given: mixed valid and invalid rows plus an invalid-list host.
-  const { kakao } = makeFakeKakao();
+  const { mapSdk } = makeFakeKakao();
   const invalidList = { innerHTML: "" };
-  const layer = createInstitutionMapLayer({ kakao, map: makeMap(), elements: { invalidList } });
+  const layer = createInstitutionMapLayer({ mapSdk, map: makeMap(), elements: { invalidList } });
   const rows = [
     ...makeRows(3),
     { id: "bad-lat", name: "위도 오류", type: "school", office: "east", lat: "x", lng: 126.7 },
@@ -177,8 +177,8 @@ test("excludes invalid coordinates and renders an invalid-coordinate list", () =
 
 test("escapes popup HTML from names, addresses, and uploaded custom fields", () => {
   // Given: untrusted uploaded text that looks like executable HTML.
-  const { kakao, created } = makeFakeKakao();
-  const layer = createInstitutionMapLayer({ kakao, map: makeMap() });
+  const { mapSdk, created } = makeFakeKakao();
+  const layer = createInstitutionMapLayer({ mapSdk, map: makeMap() });
   const row = {
     id: "xss-row",
     name: "<script>alert(1)</script>",
@@ -206,9 +206,9 @@ test("escapes popup HTML from names, addresses, and uploaded custom fields", () 
 
 test("fits current markers to Kakao LatLngBounds and supports no-clusterer fallback", () => {
   // Given: a fake Kakao namespace without MarkerClusterer.
-  const { kakao, created } = makeFakeKakao({ clusterer: false });
+  const { mapSdk, created } = makeFakeKakao({ clusterer: false });
   const map = makeMap();
-  const layer = createInstitutionMapLayer({ kakao, map });
+  const layer = createInstitutionMapLayer({ mapSdk, map });
 
   // When: rows are synced and fitBounds is requested.
   layer.sync(makeRows(12));

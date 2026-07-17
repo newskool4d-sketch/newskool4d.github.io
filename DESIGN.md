@@ -6,7 +6,7 @@ The product should feel like an operational Korean education-office map placed o
 
 The identity adapts Miro's whiteboard language to public education-office work, with an accent system derived from the Incheon Metropolitan City Office of Education CI (see section 8). Use white canvas, black primary pills, an `ice-blue` identity accent taken from the office symbol's primary wave blue, an `ice-orange` point color taken from the symbol's sun, pastel category surfaces, and compact information panels. The blue accent is an identity marker for the service badge, links, selected-state highlight, and key-status emphasis. The orange point is reserved for the brand mark dot and warning chips. Neither accent is the default background for large page regions.
 
-Static deployment remains the baseline. This design system must not require a build step, private server, external design runtime, or committed Kakao key. Any future private mode or REST geocoding proxy must be documented as a separate mode, not assumed by public static pages.
+Static deployment remains the baseline. This design system must not require a private server, external design runtime, or committed map credential. Naver Maps is the default public provider and Kakao Maps remains a temporary fallback during migration. Any future private mode or REST geocoding proxy must be documented as a separate mode, not assumed by public static pages.
 
 ## 2. Color
 
@@ -111,7 +111,8 @@ Buttons and controls:
 Map and data components:
 
 - `status-chip`: micro text, full radius, category color surface, no emoji prefix.
-- `key-prompt`: ice-blue-soft panel with concise Kakao JavaScript key guidance, ice-blue documentation links, and black save action.
+- `provider-control`: compact Naver/Kakao selector for setup and recovery. Naver is visually recommended and selected by default; the control must never ask for a client secret.
+- `key-prompt`: ice-blue-soft panel with provider-aware credential guidance, a registered-domain reminder, and black save action. Naver uses a Maps JavaScript Client ID (`ncpKeyId`); Kakao uses a JavaScript key.
 - `institution-row`: white row, hairline divider, category chip, office label, coordinate/geocode state.
 - `map-popup`: white surface, 8-12px radius, title, type/office chips, address, and row actions.
 - `import-preview`: compact table/card hybrid with valid, skipped, duplicate, pre-geocoded, and failed counts.
@@ -132,7 +133,7 @@ Motion is functional and brief:
 Interaction priorities:
 
 - Keyboard can reach search, filters, import, export, key settings, popup actions, and connection-line controls.
-- Missing Kakao key must keep the rest of the UI usable and explain the JavaScript key/domain restriction.
+- Missing map credential must keep the rest of the UI usable and explain the provider-specific Client ID/JavaScript key and registered-domain restriction.
 - Failed geocodes and invalid rows are reported as data states, never placed on fallback coordinates.
 - Static pages should load without module bundling and should degrade to readable HTML/CSS when map SDK loading fails.
 
@@ -169,3 +170,71 @@ The accent system in section 2 is derived from the Incheon Metropolitan City Off
 - **Vision purple** `#401080` (from the vision calligraphy) is not an app token; do not introduce it into UI controls.
 - CI source assets live outside the repository (`바탕 화면/교육청 관련/`: EPS masters under `CI/`, JPG references under `교육청+ci/`, `교육비전.jpg`, `인천교육힘찬.ttf`). Do not commit these assets to the public repository; only derived color values and a subsetted display font build (if adopted) may ship.
 - Reference color values sampled from the symbol artwork: wave blue `#0060b0`, deep green `#00a060`, light green `#80c030`, sky `#00b0e0`, sun orange `#f08020`.
+
+## 9. Civic Atlas 2026 Direction
+
+### Direction statement
+
+The upgraded product is a **luminous civic atlas**, not a generic municipal portal and not a purple SaaS dashboard. The map remains the hero surface. Interfaces float above it like precise cartographic instruments: pearl-white layers, blue-tinted edges, deep-navy typography, restrained orange wayfinding points, and subtle topographic lines. Depth comes from multiple low-opacity blue shadows and borders rather than heavy gray drop shadows.
+
+The single signature moment is the home-page atlas preview: a quiet route trace and layered map field that resolves when the page loads. All other motion must communicate an interaction or state change.
+
+### Added visual tokens
+
+| Token | Value | Use |
+| --- | --- | --- |
+| `atlas-navy` | `#071c35` | Display headings, command deck emphasis |
+| `atlas-blue-700` | `#004f92` | Strong selected state and links |
+| `atlas-blue-500` | `#0879d1` | Active controls and focus affordances |
+| `atlas-blue-100` | `#dceeff` | Selected surfaces and map halo |
+| `atlas-blue-050` | `#f1f8ff` | Quiet atmospheric surface |
+| `atlas-pearl` | `rgba(255,255,255,0.88)` | Floating command surfaces |
+| `atlas-edge` | `rgba(0,96,176,0.16)` | Glass edge and panel separation |
+| `atlas-grid` | `rgba(0,96,176,0.055)` | Topographic/grid atmosphere |
+| `shadow-atlas` | `0 22px 60px rgba(0,76,140,.12), 0 4px 16px rgba(5,0,56,.08)` | Hero and large floating surfaces |
+| `shadow-command` | `0 12px 32px rgba(0,76,140,.13), inset 0 1px 0 rgba(255,255,255,.92)` | Toolbars and command decks |
+
+### Core primitives
+
+- `atlas-masthead`: 64px desktop / 58px mobile. NEWSKOOL4D text mark, current section, primary route links, and a provider-status button. It uses a translucent pearl surface over a quiet blue atmospheric background.
+- `command-deck`: the primary search and filter strip. Controls are grouped by task, not by data type. It may wrap, but its primary search remains the widest control.
+- `map-stage`: the largest visual plane. It has a clear title/status rail, provider badge, layer controls, and a strong empty/loading/error surface that never hides the rest of the app.
+- `context-rail`: dense list and task detail surface. Rows use one title line, one metadata line, and no more than three visible chips before progressive disclosure.
+- `signal-chip`: text-first provider, count, success, warning, and data-quality states. Provider chips use `NAVER` or `KAKAO` text; they do not imitate either company's logo.
+- `provider-setup`: provider selector, one credential field, registered-domain reminder, save/retry action, and a local-storage notice. Client secrets are never accepted or stored.
+
+### Personas and density
+
+1. **Education-office administrator, desktop**: needs dense filtering, counts, imports, exports, and repeat use. Preserve information density and keyboard reachability.
+2. **Field staff, mobile**: needs the map first, one-thumb search/filter, location list selection, and a stable bottom context panel. Touch targets are at least 44px.
+3. **Low-vision or keyboard user**: needs visible focus, 200% zoom without horizontal page scrolling, semantic labels, live status, and no meaning encoded by color alone.
+
+### Responsive contract
+
+- `>= 1180px`: map and context rail share the viewport; command deck stays horizontal where possible.
+- `768-1179px`: context rail narrows, toolbar wraps into two purposeful rows, secondary actions move into a compact action cluster.
+- `< 768px`: header links become a horizontally scrollable route strip; sidebar and map stack; map height is at least `48svh`; status and filters remain above the list.
+- At 200% browser zoom, controls wrap rather than clip and Korean labels must not produce single-character orphan lines.
+
+### Provider interaction contract
+
+- Default provider: `naver` when no prior preference exists.
+- Fallback provider: `kakao`, available from the setup surface and status button.
+- A provider change is explicit and followed by a page reload so that only one vendor SDK owns the map canvas.
+- Existing Kakao keys are preserved under their legacy storage key; Naver Client IDs use a separate storage key.
+- The app exposes provider-neutral map behavior to page code. Vendor names may appear only in the adapter, setup copy, provider badge, and provider-specific failure messages.
+- When Naver place search cannot provide a Kakao-equivalent POI result, geocoding is used as the documented fallback and the UI labels the result as an address search.
+
+### States and accessibility
+
+- `loading`: compact progress line and explanatory text; never an emoji spinner.
+- `empty`: actionable next step with available filters and data still visible.
+- `error`: provider name, likely credential/domain cause, retry and provider-switch path.
+- `ready`: provider badge plus mapped/invalid counts; credential values are never displayed.
+- Motion uses 140ms for controls and 220ms for panels. Under `prefers-reduced-motion: reduce`, route drawing, panel transitions, and smooth scrolling are disabled.
+
+### Accepted migration debt
+
+- Naver runs as the default provider. Kakao remains available until all three public map pages pass provider-parity and visual QA.
+- Naver marker clustering may temporarily degrade to individual markers if the optional cluster utility is unavailable; the status text must say `마커`, never falsely claim `클러스터`.
+- Private local-only pages and ignored business files are outside this public redesign and must not be bundled or published.

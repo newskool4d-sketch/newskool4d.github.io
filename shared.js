@@ -1,11 +1,9 @@
 /* Incheon Education Map - shared.js */
-/* 카카오 맵 API 키 관리, 동적 SDK 로더 및 통합 GNB 공통 모듈 */
+/* 지도 공급자 설정, 동적 SDK 로더 및 통합 GNB 공통 모듈 */
 
-const STORAGE_KEY = "incheon_kakao_js_key";
+const MAP_PROVIDER = globalThis.IncheonMapProvider;
 const SHARED_ACTION_ATTR = "data-shared-action";
 const SHARED_STATUS_ATTR = "data-shared-status";
-const KAKAO_SDK_SRC = "https://dapi.kakao.com/v2/maps/sdk.js";
-const KAKAO_SDK_TIMEOUT_MS = 12000;
 const _hideTimers = new WeakMap();
 const _trapFocusHandlers = new WeakMap();
 
@@ -98,41 +96,35 @@ function hideInlineStatus(host) {
   status.hidden = true;
 }
 
-function isKakaoMapsReady() {
-  return Boolean(window.kakao?.maps?.load);
+function getActiveMapProvider() {
+  return MAP_PROVIDER.currentProvider();
 }
 
-function hasKakaoMapServices() {
-  return Boolean(window.kakao?.maps?.services);
+function getActiveProviderMeta() {
+  return MAP_PROVIDER.providerMeta(getActiveMapProvider());
 }
 
-function removeKakaoSdkScripts() {
-  document
-    .querySelectorAll(`script[src*="${KAKAO_SDK_SRC}"]`)
-    .forEach((existingScript) => existingScript.remove());
-}
-
-function showKakaoSdkFailure(title, description) {
-  createLoaderCover(title, description);
-}
-
-/**
- * 로컬 스토리지에서 카카오 자바스크립트 키 읽기
- */
 function getCachedKakaoKey() {
-  return localStorage.getItem(STORAGE_KEY) || "";
+  return MAP_PROVIDER.getCredential(getActiveMapProvider());
 }
 
-/**
- * 로컬 스토리지에 카카오 자바스크립트 키 저장 및 페이지 새로고침
- */
 function saveKakaoKey(key) {
-  if (key) {
-    localStorage.setItem(STORAGE_KEY, key.trim());
-  } else {
-    localStorage.removeItem(STORAGE_KEY);
-  }
+  MAP_PROVIDER.setCredential(getActiveMapProvider(), key);
   window.location.reload();
+}
+
+function syncProviderForm(provider) {
+  const normalized = MAP_PROVIDER.normalizeProvider(provider);
+  const meta = MAP_PROVIDER.providerMeta(normalized);
+  const credential = MAP_PROVIDER.getCredential(normalized);
+  const input = document.getElementById("modal-key-input");
+  const loaderInput = document.getElementById("loader-key-input");
+  const label = document.querySelector("[data-provider-credential-label]");
+  const help = document.querySelector("[data-provider-help]");
+  if (input) { input.value = credential; input.placeholder = meta.credentialPlaceholder; }
+  if (loaderInput) { loaderInput.value = credential; loaderInput.placeholder = meta.credentialPlaceholder; }
+  if (label) label.textContent = meta.credentialLabel;
+  if (help) help.textContent = `${meta.domainHelp} Client Secret은 입력하지 마세요.`;
 }
 
 function bindSharedUiEvents() {
@@ -189,6 +181,14 @@ function bindSharedUiEvents() {
       submitKeyFromLoader();
     }
   });
+
+  document.addEventListener("change", (event) => {
+    if (!(event.target instanceof HTMLSelectElement)) return;
+    if (!event.target.matches("[data-provider-select]")) return;
+    const provider = MAP_PROVIDER.setProvider(event.target.value);
+    document.querySelectorAll("[data-provider-select]").forEach((select) => { select.value = provider; });
+    syncProviderForm(provider);
+  });
 }
 
 function submitKeyInput(inputId) {
@@ -199,7 +199,7 @@ function submitKeyInput(inputId) {
   const key = input.value.trim();
 
   if (!key) {
-    showInlineStatus(host, "JavaScript 키를 먼저 입력해주세요.", "error");
+    showInlineStatus(host, `${getActiveProviderMeta().credentialLabel}를 먼저 입력해 주세요.`, "error");
     input.focus();
     return;
   }
@@ -217,11 +217,10 @@ function injectSharedGNB(activeTab) {
   if (document.querySelector(".gnb-header")) return;
 
   const cachedKey = getCachedKakaoKey();
-  const maskedKey = cachedKey ? cachedKey.substring(0, 8) + "••••" + cachedKey.substring(cachedKey.length - 4) : "미등록";
+  const provider = getActiveMapProvider();
+  const providerInfo = getActiveProviderMeta();
   const statusClass = cachedKey ? "active" : "";
-  const statusText = cachedKey ? "API 키 ACTIVE" : "API 키 미인증";
-  
-  const safeMaskedKey = escapeHtml(maskedKey);
+  const statusText = cachedKey ? `${providerInfo.badge} 연결 준비` : `${providerInfo.badge} 설정 필요`;
   const safeCachedKey = escapeHtml(cachedKey);
 
   const header = document.createElement("header");
@@ -232,11 +231,14 @@ function injectSharedGNB(activeTab) {
       <div class="gnb-title">인천교육 통합지도</div>
     </a>
     <nav class="gnb-nav">
+      <a href="unified-map.html" class="gnb-tab ${activeTab === 'unified' ? 'active' : ''}">
+        통합 작업지도
+      </a>
       <a href="schools.html" class="gnb-tab ${activeTab === 'schools' ? 'active' : ''}">
-        🏫 관내 학교 디렉토리
+        학교 디렉토리
       </a>
       <a href="infrastructure.html" class="gnb-tab ${activeTab === 'infrastructure' ? 'active' : ''}">
-        🗺️ 교육청 체험교육 기관 안내
+        체험교육 기관
       </a>
     </nav>
     <div class="gnb-key-info">
@@ -247,7 +249,7 @@ function injectSharedGNB(activeTab) {
         style="border: 0; background: transparent; padding: 0; cursor: pointer;"
       >
         <div class="gnb-status-dot ${statusClass}"></div>
-        <span>${statusText} (${safeMaskedKey})</span>
+        <span>${escapeHtml(statusText)}</span>
       </button>
     </div>
   `;
@@ -258,17 +260,24 @@ function injectSharedGNB(activeTab) {
   modal.className = "key-modal";
   modal.innerHTML = `
     <div class="key-modal-content" data-status-host>
-      <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 12px; color: #fff;">🔑 카카오 API 키 설정</h3>
-      <p style="font-size: 13.5px; color: var(--text-sub); line-height: 1.6; margin-bottom: 20px;">
-        카카오 Developers의 [내 애플리케이션] &gt; [앱 키]에서 발급받은 <strong>JavaScript 키</strong>를 입력해주세요. 이 키는 브라우저 localStorage에 저장됩니다. 운영 전 카카오 콘솔에서 허용 도메인을 localhost 또는 실제 배포 도메인으로 제한해 주세요.
-      </p>
-      <div class="form-group" style="margin-bottom: 24px;">
-        <label for="modal-key-input">JavaScript 키 입력</label>
-        <input type="text" id="modal-key-input" placeholder="키 입력..." value="${safeCachedKey}" style="width: 100%;">
+      <span class="provider-kicker">MAP PROVIDER</span>
+      <h3>지도 연결 설정</h3>
+      <p class="provider-modal-copy">공급자와 브라우저용 식별자를 선택합니다. 값은 이 브라우저에만 저장되며 화면에는 노출하지 않습니다.</p>
+      <div class="form-group provider-selector-group">
+        <label for="modal-provider-select">지도 공급자</label>
+        <select id="modal-provider-select" data-provider-select>
+          <option value="naver" ${provider === "naver" ? "selected" : ""}>네이버 지도 · 권장</option>
+          <option value="kakao" ${provider === "kakao" ? "selected" : ""}>카카오 지도 · 대체</option>
+        </select>
       </div>
-      <div style="display: flex; gap: 10px;">
-        <button type="button" ${SHARED_ACTION_ATTR}="submit-key-modal" style="flex: 1;">저장 후 불러오기</button>
-        <button type="button" ${SHARED_ACTION_ATTR}="close-key-modal" class="btn-secondary" style="flex: 1;">닫기</button>
+      <div class="form-group" style="margin-bottom: 24px;">
+        <label for="modal-key-input" data-provider-credential-label>${escapeHtml(providerInfo.credentialLabel)}</label>
+        <input type="text" id="modal-key-input" placeholder="${escapeHtml(providerInfo.credentialPlaceholder)}" value="${safeCachedKey}" style="width: 100%;" autocomplete="off">
+        <small data-provider-help>${escapeHtml(providerInfo.domainHelp)} Client Secret은 입력하지 마세요.</small>
+      </div>
+      <div class="provider-modal-actions">
+        <button type="button" ${SHARED_ACTION_ATTR}="submit-key-modal">저장하고 지도 연결</button>
+        <button type="button" ${SHARED_ACTION_ATTR}="close-key-modal" class="btn-secondary">닫기</button>
       </div>
     </div>
   `;
@@ -334,118 +343,34 @@ function submitKeyFromModal() {
   submitKeyInput("modal-key-input");
 }
 
-/**
- * 카카오 맵 SDK를 동적으로 웹에 로드합니다.
- * 키가 없으면 로더 카버창을 노출하고 입력을 유도합니다.
- * @param {Function} callback - SDK 로드 완료 후 실행될 콜백 함수
- */
+/** 지도 공급자 SDK를 동적으로 로드합니다. 기존 페이지 호환을 위해 함수명은 유지합니다. */
 function loadKakaoSDK(callback) {
-  const apiKey = getCachedKakaoKey();
-
-  // 1. 키가 미지정된 경우 사용자 인터페이스 차단 및 입력을 유도하는 커버 생성
-  if (!apiKey) {
+  const provider = getActiveMapProvider();
+  const meta = getActiveProviderMeta();
+  const credential = getCachedKakaoKey();
+  if (!credential) {
     createLoaderCover(
-      "🔑 카카오 JavaScript 키 등록 필요",
-        "newskool4d.github.io 인천교육 공개지도를 실행하려면 카카오 Developers에서 발급한 JavaScript 키 등록이 필요합니다. 이 키는 브라우저 localStorage에 저장되므로, 카카오 콘솔에서 허용 도메인을 localhost 또는 https://newskool4d.github.io 로 제한한 뒤 입력해주세요."
+      `${meta.name} 연결 정보가 필요합니다`,
+      `${meta.credentialLabel}를 입력하면 지도가 활성화됩니다. ${meta.domainHelp}`
     );
     return;
   }
 
-  const finishLoad = () => {
-    if (!hasKakaoMapServices()) {
-      showKakaoSdkFailure(
-        "❌ SDK 초기화 실패",
-        "카카오 지도 기본 객체는 준비됐지만 장소·주소 검색 서비스가 없습니다. services 라이브러리가 포함된 JavaScript 키 로드인지, 허용 도메인 설정이 맞는지 확인해 주세요."
-      );
-      return;
-    }
-
+  MAP_PROVIDER.load({ provider, credential }).then(() => {
     const cover = document.getElementById("loader-cover");
     if (cover) {
       cover.style.opacity = "0";
-      setTimeout(() => cover.remove(), 500);
+      window.setTimeout(() => cover.remove(), 220);
     }
-
-    const mapDiv = document.getElementById("map");
-    if (mapDiv) mapDiv.classList.add("visible");
-
-    if (typeof callback === "function") {
-      callback();
-    }
-  };
-
-  if (isKakaoMapsReady()) {
-    try {
-      window.kakao.maps.load(finishLoad);
-    } catch (error) {
-      showKakaoSdkFailure(
-        "❌ SDK 초기화 실패",
-        "이미 로드된 카카오 지도 객체를 초기화하는 중 오류가 발생했습니다. 페이지를 새로고침하거나 JavaScript 키와 허용 도메인을 다시 확인해 주세요."
-      );
-    }
-    return;
-  }
-
-  // 2. 키가 있는 경우 카카오 SDK 스크립트 태그 동적 삽입
-  removeKakaoSdkScripts();
-
-  const script = document.createElement("script");
-  script.type = "text/javascript";
-  script.src = `${KAKAO_SDK_SRC}?appkey=${encodeURIComponent(apiKey)}&autoload=false&libraries=services,clusterer,drawing`;
-
-  let settled = false;
-  const timeoutId = window.setTimeout(() => {
-    if (settled) return;
-    settled = true;
-    script.remove();
-    showKakaoSdkFailure(
-      "⏱️ SDK 로드 시간 초과",
-      "카카오 맵 라이브러리 응답이 지연되고 있습니다. 네트워크 연결, 브라우저 확장 프로그램 차단 여부, 카카오 Developers의 Web 플랫폼 도메인 등록 상태를 확인한 뒤 다시 시도해 주세요."
+    document.getElementById("map")?.classList.add("visible");
+    document.body.dataset.mapProvider = provider;
+    if (typeof callback === "function") callback();
+  }).catch(() => {
+    createLoaderCover(
+      `${meta.name} 연결에 실패했습니다`,
+      `${meta.credentialLabel}, 네트워크 상태, 등록된 Web 서비스 URL을 확인하거나 다른 지도 공급자로 전환해 주세요.`
     );
-  }, KAKAO_SDK_TIMEOUT_MS);
-
-  const failLoad = (title, description) => {
-    if (settled) return;
-    settled = true;
-    window.clearTimeout(timeoutId);
-    script.remove();
-    showKakaoSdkFailure(title, description);
-  };
-
-  const completeLoad = () => {
-    if (settled) return;
-    settled = true;
-    window.clearTimeout(timeoutId);
-    finishLoad();
-  };
-
-  script.onload = () => {
-    if (!isKakaoMapsReady()) {
-      failLoad(
-        "❌ SDK 초기화 실패",
-        "카카오 SDK 파일은 내려받았지만 지도 객체가 초기화되지 않았습니다. JavaScript 키와 Web 플랫폼 허용 도메인이 현재 접속 주소와 일치하는지 확인해 주세요."
-      );
-      return;
-    }
-
-    try {
-      window.kakao.maps.load(completeLoad);
-    } catch (error) {
-      failLoad(
-        "❌ SDK 초기화 실패",
-        "카카오 지도 초기화 중 오류가 발생했습니다. 저장된 JavaScript 키를 다시 입력하거나 카카오 Developers의 허용 도메인 설정을 확인해 주세요."
-      );
-    }
-  };
-
-  script.onerror = () => {
-    failLoad(
-      "❌ SDK 로드 실패",
-      "카카오 맵 라이브러리를 로드하지 못했습니다. 네트워크 연결, 광고/보안 확장 프로그램 차단, JavaScript 키, 카카오 Developers 허용 도메인 등록을 확인해 주세요."
-    );
-  };
-
-  document.head.appendChild(script);
+  });
 }
 
 /**
@@ -457,6 +382,8 @@ function createLoaderCover(title, description) {
 
   const oldCover = document.getElementById("loader-cover");
   if (oldCover) oldCover.remove();
+  const provider = getActiveMapProvider();
+  const meta = getActiveProviderMeta();
   const safeCachedKey = escapeHtml(getCachedKakaoKey());
 
   const cover = document.createElement("div");
@@ -464,16 +391,23 @@ function createLoaderCover(title, description) {
   cover.className = "map-loader-cover";
   cover.innerHTML = `
     <div class="map-loader-card" data-status-host>
-      <div class="loader-icon">📍</div>
-      <h3 style="font-size: 20px; font-weight: 700; margin-bottom: 12px; color: #fff;">${escapeHtml(title)}</h3>
-      <p style="font-size: 14.5px; color: var(--text-sub); line-height: 1.6; margin-bottom: 24px;">${escapeHtml(description)}</p>
-      
-      <div class="form-group" style="max-width: 320px; margin: 0 auto 20px auto; text-align: left;">
-        <label for="loader-key-input">JavaScript Key</label>
-        <input type="text" id="loader-key-input" placeholder="여기에 키를 입력하세요..." value="${safeCachedKey}" style="width: 100%;">
+      <div class="loader-signal" aria-hidden="true"><span></span><span></span><span></span></div>
+      <span class="provider-kicker">${escapeHtml(meta.badge)} MAP</span>
+      <h3>${escapeHtml(title)}</h3>
+      <p>${escapeHtml(description)}</p>
+      <div class="form-group provider-selector-group">
+        <label for="loader-provider-select">지도 공급자</label>
+        <select id="loader-provider-select" data-provider-select>
+          <option value="naver" ${provider === "naver" ? "selected" : ""}>네이버 지도 · 권장</option>
+          <option value="kakao" ${provider === "kakao" ? "selected" : ""}>카카오 지도 · 대체</option>
+        </select>
       </div>
-      
-      <button type="button" ${SHARED_ACTION_ATTR}="submit-key-loader" style="margin: 0 auto;">대시보드 기동하기</button>
+      <div class="form-group">
+        <label for="loader-key-input" data-provider-credential-label>${escapeHtml(meta.credentialLabel)}</label>
+        <input type="text" id="loader-key-input" placeholder="${escapeHtml(meta.credentialPlaceholder)}" value="${safeCachedKey}" autocomplete="off">
+        <small data-provider-help>${escapeHtml(meta.domainHelp)} Client Secret은 입력하지 마세요.</small>
+      </div>
+      <button type="button" ${SHARED_ACTION_ATTR}="submit-key-loader">저장하고 지도 연결</button>
     </div>
   `;
   viewport.appendChild(cover);
@@ -487,17 +421,14 @@ function submitKeyFromLoader() {
   submitKeyInput("loader-key-input");
 }
 
-/**
- * 모든 카카오 지도 화면에서 동일한 기본 조작감을 제공합니다.
- * 확대/축소 컨트롤, 지도 타입 컨트롤, 드래그/휠 줌, 리사이즈 보정을 한 번만 적용합니다.
- */
+/** 모든 지도 화면에서 동일한 기본 조작감을 제공합니다. */
 function applyStandardKakaoMapSettings(map) {
   if (!map || map.__standardControlsApplied) return;
 
   map.setDraggable(true);
   map.setZoomable(true);
-  map.addControl(new kakao.maps.ZoomControl(), kakao.maps.ControlPosition.RIGHT);
-  map.addControl(new kakao.maps.MapTypeControl(), kakao.maps.ControlPosition.TOPRIGHT);
+  map.addControl(new eduMaps.maps.ZoomControl(), eduMaps.maps.ControlPosition.RIGHT);
+  map.addControl(new eduMaps.maps.MapTypeControl(), eduMaps.maps.ControlPosition.TOPRIGHT);
 
   const onResize = () => {
     map.relayout();
@@ -518,14 +449,14 @@ function fitKakaoMapToCoords(map, coords, fallbackCenter, fallbackLevel = 8) {
     return;
   }
 
-  const bounds = new kakao.maps.LatLngBounds();
+  const bounds = new eduMaps.maps.LatLngBounds();
   validCoords.forEach(coord => bounds.extend(coord));
   map.setBounds(bounds);
 }
 
 /**
  * 사이드바 드래그 폭 조절 바(Resizer) 활성화 함수 (유저 피드백 최우선 적용 피처!)
- * @param {kakao.maps.Map} [map] - 레이아웃 변경 시 즉각 갱신할 카카오 맵 인스턴스
+ * @param {object} [map] - 레이아웃 변경 시 즉각 갱신할 지도 인스턴스
  */
 const SIDEBAR_WIDTH_KEY = "incheon_sidebar_width";
 
