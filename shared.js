@@ -20,6 +20,13 @@ function escapeHtml(value) {
   })[char]);
 }
 
+function renderKeepTogether(value, phrases = []) {
+  return phrases.reduce((html, phrase) => {
+    const safePhrase = escapeHtml(phrase);
+    return html.replace(safePhrase, `<span class="um-keep-together">${safePhrase}</span>`);
+  }, escapeHtml(value));
+}
+
 function safeHttpUrl(value) {
   try {
     const url = new URL(String(value || ""), window.location.href);
@@ -273,7 +280,7 @@ function injectSharedGNB(activeTab) {
       <div class="form-group" style="margin-bottom: 24px;">
         <label for="modal-key-input" data-provider-credential-label>${escapeHtml(providerInfo.credentialLabel)}</label>
         <input type="text" id="modal-key-input" placeholder="${escapeHtml(providerInfo.credentialPlaceholder)}" value="${safeCachedKey}" style="width: 100%;" autocomplete="off">
-        <small data-provider-help>${escapeHtml(providerInfo.domainHelp)} Client Secret은 입력하지 마세요.</small>
+        <small data-provider-help>${renderKeepTogether(providerInfo.domainHelp, ["현재 사이트 주소를 등록하세요."])} <span class="um-keep-together">Client Secret</span>은 <span class="um-keep-together">입력하지 마세요.</span></small>
       </div>
       <div class="provider-modal-actions">
         <button type="button" ${SHARED_ACTION_ATTR}="submit-key-modal">저장하고 지도 연결</button>
@@ -385,6 +392,13 @@ function createLoaderCover(title, description) {
   const provider = getActiveMapProvider();
   const meta = getActiveProviderMeta();
   const safeCachedKey = escapeHtml(getCachedKakaoKey());
+  const safeTitle = renderKeepTogether(title, ["정보가 필요합니다"]);
+  const safeDescription = renderKeepTogether(description, [
+    "지도가 활성화됩니다.",
+    "지도 이동과",
+    "현재 사이트 주소를 등록하세요.",
+  ]);
+  const safeDomainHelp = renderKeepTogether(meta.domainHelp, ["현재 사이트 주소를 등록하세요."]);
 
   const cover = document.createElement("div");
   cover.id = "loader-cover";
@@ -393,8 +407,8 @@ function createLoaderCover(title, description) {
     <div class="map-loader-card" data-status-host>
       <div class="loader-signal" aria-hidden="true"><span></span><span></span><span></span></div>
       <span class="provider-kicker">${escapeHtml(meta.badge)} MAP</span>
-      <h3>${escapeHtml(title)}</h3>
-      <p>${escapeHtml(description)}</p>
+      <h3>${safeTitle}</h3>
+      <p>${safeDescription}</p>
       <div class="form-group provider-selector-group">
         <label for="loader-provider-select">지도 공급자</label>
         <select id="loader-provider-select" data-provider-select>
@@ -405,7 +419,7 @@ function createLoaderCover(title, description) {
       <div class="form-group">
         <label for="loader-key-input" data-provider-credential-label>${escapeHtml(meta.credentialLabel)}</label>
         <input type="text" id="loader-key-input" placeholder="${escapeHtml(meta.credentialPlaceholder)}" value="${safeCachedKey}" autocomplete="off">
-        <small data-provider-help>${escapeHtml(meta.domainHelp)} Client Secret은 입력하지 마세요.</small>
+        <small data-provider-help>${safeDomainHelp} <span class="um-keep-together">Client Secret</span>은 <span class="um-keep-together">입력하지 마세요.</span></small>
       </div>
       <button type="button" ${SHARED_ACTION_ATTR}="submit-key-loader">저장하고 지도 연결</button>
     </div>

@@ -1,0 +1,14 @@
+{
+  "sourceFilename": "학교현황_통합(홈페이지 추가)_2026-04-01.csv",
+  "sourceDate": "2026-04-01",
+  "sourceSha256": "b8c11821934d1d73147a8828bc9470cc3badfae9433daeea3fc3c1ace247b7c1",
+  "directoryProjectionSha256": "55f14335e47b0741cdca74dde8b30f59a935410d72b21936478c0f8d482d6793",
+  "records": 967,
+  "directoryRecords": 967,
+  "matchedRecords": 967,
+  "unmatchedSchools": 0,
+  "unmatchedDirectory": 0,
+  "duplicateDirectoryRows": 0,
+  "phones": 967,
+  "websites": 756
+}

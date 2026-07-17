@@ -1,6 +1,5 @@
 import { INSTITUTION_TYPE_LABELS, OFFICE_LABELS } from "./constants.js";
 import { createConnectionManager } from "./connection-layer.js";
-import { createFavoritesStore } from "./favorites.js";
 import { buildImportPreviewFromArrayBuffer, buildImportPreviewFromCsv } from "./importer.js";
 import { exportDataset, filterInstitutions, loadAllInstitutions, loadConnections, mergeImportedInstitutions } from "./institution-repository.js";
 import { createInstitutionMapLayer, filterRowsByMarkerLayers } from "./map-layers.js";
@@ -13,8 +12,7 @@ const state = {
   institutions: [],
   importedInstitutions: [],
   warnings: [],
-  filters: { search: "", office: "all", type: "all" }, favoritesOnly: false, markerLayers: { school: true, institution: true, imported: true },
-  favorites: null,
+  filters: { search: "", office: "all", type: "all" }, markerLayers: { school: true, institution: true, imported: true },
   map: null, mapLayer: null, connectionManager: null,
   mapInitRequested: false,
   visibleRows: [],
@@ -36,6 +34,15 @@ const escapeHtml = (value) => text(value).replace(/[&<>"']/g, (char) => ({
   "\"": "&quot;",
   "'": "&#39;",
 }[char]));
+
+const safeExternalUrl = (value) => {
+  try {
+    const url = new URL(text(value));
+    return url.protocol === "http:" || url.protocol === "https:" ? url.href : "";
+  } catch {
+    return "";
+  }
+};
 
 const downloadJson = (filename, data) => {
   const url = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: "application/json" }));
@@ -99,15 +106,17 @@ const syncMarkerLayer = (rows) => {
   setText("#map-state-text", `마커 ${result.rendered}개 표시, 좌표 오류 ${result.invalidRows.length}개 제외`);
 };
 
-const rowTemplate = (row) => `
+const rowTemplate = (row) => {
+  const website = safeExternalUrl(row.website || row.url);
+  return `
   <article class="um-row">
-    <button type="button" class="um-fav-toggle ${state.favorites?.has(row.id) ? "is-active" : ""}"
-      data-favorite-id="${escapeHtml(row.id)}"
-      aria-pressed="${state.favorites?.has(row.id) ? "true" : "false"}"
-      aria-label="${escapeHtml(row.name)} 관심 기관 ${state.favorites?.has(row.id) ? "해제" : "등록"}">★</button>
     <div class="um-row-main">
       <strong>${escapeHtml(row.name)}</strong>
       <span>${escapeHtml(row.address || "주소 없음")}</span>
+      ${(row.phone || website) ? `<span class="um-row-contact">
+        ${row.phone ? `<a href="tel:${escapeHtml(String(row.phone).replace(/[^0-9+]/g, ""))}">전화 ${escapeHtml(row.phone)}</a>` : ""}
+        ${website ? `<a href="${escapeHtml(website)}" target="_blank" rel="noopener noreferrer">홈페이지</a>` : ""}
+      </span>` : ""}
     </div>
     <div class="um-row-meta">
       <span class="um-chip" data-type="${escapeHtml(row.type)}">${escapeHtml(INSTITUTION_TYPE_LABELS[row.type] ?? row.type)}</span>
@@ -117,12 +126,10 @@ const rowTemplate = (row) => `
     </div>
   </article>
 `;
+};
 
 const renderRows = () => {
-  let rows = filterInstitutions(state.institutions, state.filters);
-  if (state.favoritesOnly && state.favorites) {
-    rows = rows.filter((row) => state.favorites.has(row.id));
-  }
+  const rows = filterInstitutions(state.institutions, state.filters);
   renderCounts(rows);
   syncMarkerLayer(rows);
   const list = $("#institution-list");
@@ -234,29 +241,6 @@ const bindEvents = () => {
     renderRows();
   });
   document.querySelectorAll("[data-marker-layer]").forEach((input) => input.addEventListener("change", (event) => { state.markerLayers[event.target.value] = event.target.checked; renderRows(); }));
-  $("#favorites-only")?.addEventListener("change", (event) => {
-    state.favoritesOnly = event.target.checked;
-    renderRows();
-  });
-  $("#institution-list")?.addEventListener("click", (event) => {
-    const button = event.target.closest("[data-favorite-id]");
-    if (!button || !state.favorites) return;
-    state.favorites.toggle(button.dataset.favoriteId);
-    renderRows();
-  });
-  $("#export-favorites")?.addEventListener("click", () => {
-    downloadJson("incheon-education-map-favorites.json", JSON.parse(state.favorites?.exportJson() ?? "{}"));
-  });
-  $("#import-favorites-file")?.addEventListener("change", async (event) => {
-    const file = event.target.files?.[0];
-    if (!file || !state.favorites) return;
-    const result = state.favorites.importJson(await file.text());
-    setText("#import-message", result.ok
-      ? `관심 기관 ${result.added}개를 가져왔습니다.`
-      : "관심 기관 파일 형식이 올바르지 않습니다.");
-    event.target.value = "";
-    renderRows();
-  });
   $("#import-file")?.addEventListener("change", (event) => handleImport(event.target.files?.[0]));
   $(".um-file-label")?.addEventListener("keydown", (event) => {
     if (event.key !== "Enter" && event.key !== " ") return;
@@ -288,7 +272,6 @@ const bindEvents = () => {
 };
 
 const init = async () => {
-  state.favorites = createFavoritesStore({ storage: localStorage });
   bindEvents();
   state.connectionManager = createConnectionManager({ storage: localStorage });
   state.connectionManager.bindControls(document);

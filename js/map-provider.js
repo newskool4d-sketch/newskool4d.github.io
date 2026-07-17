@@ -13,7 +13,7 @@
       credentialLabel: "Maps JavaScript Client ID",
       credentialPlaceholder: "Naver Cloud Platform Client ID",
       storageKey: "incheon_naver_map_client_id",
-      domainHelp: "Naver Cloud Platform의 Web 서비스 URL에 현재 사이트 주소를 등록해 주세요.",
+      domainHelp: "Naver Cloud Platform의 Web 서비스 URL에 현재 사이트 주소를 등록하세요.",
     }),
     kakao: Object.freeze({
       id: "kakao",
@@ -22,7 +22,7 @@
       credentialLabel: "JavaScript 키",
       credentialPlaceholder: "Kakao Developers JavaScript 키",
       storageKey: "incheon_kakao_js_key",
-      domainHelp: "Kakao Developers의 Web 플랫폼 사이트 도메인에 현재 사이트 주소를 등록해 주세요.",
+      domainHelp: "Kakao Developers의 Web 플랫폼 사이트 도메인에 현재 사이트 주소를 등록하세요.",
     }),
   });
 

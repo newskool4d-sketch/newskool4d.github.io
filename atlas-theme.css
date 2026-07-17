@@ -364,7 +364,12 @@ button:hover { background: var(--atlas-blue-700) !important; transform: translat
   box-shadow: var(--atlas-shadow) !important;
 }
 .map-loader-card h3,
-.key-modal-content h3 { margin: 12px 0 10px !important; color: var(--atlas-navy) !important; font-family: "Incheon Edu Himchan", "Pretendard", sans-serif; font-size: 26px !important; }
+.key-modal-content h3 { margin: 12px 0 10px !important; color: var(--atlas-navy) !important; font-family: "Incheon Edu Himchan", "Pretendard", sans-serif; font-size: 26px !important; word-break: keep-all; }
+.map-loader-card p,
+.key-modal-content p,
+.um-key-card p { word-break: keep-all; }
+.map-loader-card small,
+.key-modal-content small { word-break: keep-all; }
 .map-loader-card p { color: #5b6d82 !important; line-height: 1.65 !important; }
 .loader-signal { display: flex; gap: 5px; margin-bottom: 18px; }
 .loader-signal span { width: 9px; height: 9px; border-radius: 50%; background: var(--atlas-blue-500); }
@@ -427,6 +432,17 @@ button:hover { background: var(--atlas-blue-700) !important; transform: translat
   background: var(--atlas-navy) !important;
   color: #fff !important;
 }
+.um-button:disabled,
+.um-button:disabled:hover,
+.um-button-primary:disabled,
+.um-button-primary:disabled:hover {
+  border-color: var(--atlas-edge) !important;
+  background: #e3e8ef !important;
+  color: #66758a !important;
+  cursor: not-allowed !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
 .um-link-button:hover,
 .um-button:hover,
 .um-file-label:hover { border-color: rgba(8,121,209,.38) !important; background: var(--atlas-blue-050) !important; color: var(--atlas-blue-700) !important; transform: translateY(-1px); }
@@ -454,6 +470,7 @@ button:hover { background: var(--atlas-blue-700) !important; transform: translat
 }
 .um-search { border-radius: 999px !important; }
 .um-note { color: #607286 !important; }
+.um-keep-together { white-space: nowrap; }
 .um-status,
 .um-chip {
   border: 1px solid var(--atlas-edge) !important;
@@ -629,6 +646,7 @@ h1 {
 .map-label span,
 .metric span,
 .deploy-note span { color: #607286 !important; }
+.map-label span { word-break: keep-all; }
 .deploy-strip { grid-template-columns: repeat(3, minmax(0,1fr)) !important; gap: 12px !important; }
 
 @keyframes atlas-route {
@@ -641,12 +659,15 @@ h1 {
   .gnb-nav { order: 3; width: 100%; overflow-x: auto; flex-wrap: nowrap !important; justify-content: flex-start !important; }
   .gnb-tab { flex: 0 0 auto; }
   .workflow-panel { grid-template-columns: 1fr; }
-  .um-map-area { position: relative !important; top: auto; height: 58dvh; min-height: 520px !important; }
-  .um-panel { height: auto; min-height: 0 !important; overflow: visible; }
-  .um-panel .um-list { max-height: 520px; }
   .hero-grid { grid-template-columns: 1fr !important; }
   .hero-copy { min-height: auto !important; }
   .map-stage { min-height: 560px !important; }
+}
+
+@media (min-width: 768px) and (max-width: 1100px) {
+  .um-main { grid-template-columns: minmax(0, 1fr) minmax(300px, 340px) !important; }
+  .um-key-form { grid-template-columns: 1fr !important; }
+  .um-key-form .um-button { width: 100%; }
 }
 
 @media (min-width: 1101px) {
@@ -658,10 +679,14 @@ h1 {
   .um-page .um-panel { height: 100%; min-height: 0 !important; }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 767px) {
   .gnb-header { height: auto !important; min-height: 58px !important; padding: 8px 10px !important; flex-shrink: 0 !important; }
   .gnb-title { font-size: 17px !important; }
   .gnb-status-badge { width: auto !important; }
+  .gnb-tab { min-height: 44px !important; }
+  .gnb-status-badge { min-height: 44px !important; }
+  .gnb-logo,
+  .um-brand { min-height: 44px !important; }
   .app-main { height: auto !important; min-height: 0 !important; flex: 1 1 auto !important; }
   .sidebar { width: 100% !important; max-height: none !important; box-shadow: none !important; }
   .sidebar-header { padding: 20px 16px !important; }
@@ -686,6 +711,13 @@ h1 {
   .um-map-placeholder { overflow-y: auto !important; align-items: flex-start !important; padding: 18px 8px !important; }
   .um-key-form { grid-template-columns: 1fr !important; }
   .um-key-form .um-button { width: 100%; }
+  .um-button,
+  .um-link-button,
+  .um-file-label,
+  .um-search,
+  .um-select,
+  .um-input,
+  .um-layer-toggle { min-height: 44px !important; }
   .site-shell { width: min(100% - 24px, 760px) !important; padding-top: 12px !important; }
   .site-header { align-items: stretch !important; padding: 10px !important; }
   .site-actions { overflow-x: auto; }

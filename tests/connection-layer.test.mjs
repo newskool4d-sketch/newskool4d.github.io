@@ -2,13 +2,24 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
-  connectionDistanceMeters,
   createConnectionDraft,
   createConnectionManager,
   sanitizeConnectionLabel,
   serializeConnectionSet,
   validateConnectionsForInstitutions,
 } from "../js/connection-layer.js";
+
+const roadRoute = Object.freeze({
+  provider: "naver-directions-5",
+  path: [
+    [37.4562754, 126.703048],
+    [37.452, 126.721],
+    [37.4485429, 126.7400125],
+  ],
+  distanceMeters: 4860,
+  durationMillis: 720000,
+  routedAt: "2026-07-17T00:00:00.000Z",
+});
 
 const institutions = Object.freeze([
   { id: "office-main", name: "인천광역시교육청", lat: 37.4562754, lng: 126.703048 },
@@ -62,6 +73,7 @@ test("creates red and blue connections, persists, reloads, exports, imports, and
     color: "red",
     strokeStyle: "solid",
     label: "본청 <동부>",
+    route: roadRoute,
     now: () => "2026-06-27T00:00:00.000Z",
   });
   const blue = createConnectionDraft({
@@ -70,6 +82,14 @@ test("creates red and blue connections, persists, reloads, exports, imports, and
     color: "blue",
     strokeStyle: "dashed",
     label: "동부-학교",
+    route: {
+      ...roadRoute,
+      path: [
+        [37.4485429, 126.7400125],
+        [37.43, 126.73],
+        [37.41, 126.72],
+      ],
+    },
     now: () => "2026-06-27T00:01:00.000Z",
   });
   assert.equal(manager.add(red).ok, true);
@@ -81,7 +101,7 @@ test("creates red and blue connections, persists, reloads, exports, imports, and
   const imported = reloaded.importJson(exported);
   const deleted = reloaded.delete(red.id);
 
-  // Then: both lines render as real polylines, export/import roundtrips, distance is positive, and delete removes one.
+  // Then: both cached road paths render as real polylines, export/import roundtrips, and delete removes one.
   assert.equal(created.polylines.filter((line) => line.map).length, 1);
   assert.ok(created.polylines.some((line) => line.options.strokeColor === "#ef4444"));
   assert.ok(created.polylines.some((line) => line.options.strokeColor === "#2563eb" && line.options.strokeStyle === "shortdash"));
@@ -89,8 +109,64 @@ test("creates red and blue connections, persists, reloads, exports, imports, and
   assert.equal(deleted.ok, true);
   assert.equal(reloaded.getState().connections.length, 1);
   assert.equal(reloaded.getState().connections[0].id, blue.id);
-  assert.ok(connectionDistanceMeters(institutions[0], institutions[1]) > 0);
+  assert.equal(created.polylines[0].options.path.length, 3);
+  assert.equal(reloaded.getState().connections[0].roadDistanceMeters, 4860);
   assert.match(exported, /"color": "red"/);
+  assert.match(exported, /"routeProvider": "naver-directions-5"/);
+});
+
+test("never renders legacy connections as straight-line fallbacks", () => {
+  const storage = createStorage();
+  const { mapSdk, created } = createFakeKakao();
+  const manager = createConnectionManager({ mapSdk, map: {}, storage });
+  manager.refreshInstitutions(institutions);
+
+  const legacy = createConnectionDraft({
+    fromId: "office-main",
+    toId: "office-east",
+    color: "blue",
+  });
+  assert.equal(manager.add(legacy).ok, true);
+  assert.equal(created.polylines.length, 0);
+  assert.equal(manager.getState().needsRoute, 1);
+});
+
+test("calculates a road route before saving a new connection", async () => {
+  const calls = [];
+  const manager = createConnectionManager({
+    storage: createStorage(),
+    routeService: async ({ from, to }) => {
+      calls.push([from.id, to.id]);
+      return roadRoute;
+    },
+  });
+  manager.refreshInstitutions(institutions);
+
+  const result = await manager.routeAndAdd({
+    fromId: "office-main",
+    toId: "office-east",
+    color: "green",
+    label: "도로 연결",
+  });
+
+  assert.equal(result.ok, true);
+  assert.deepEqual(calls, [["office-main", "office-east"]]);
+  assert.equal(manager.getState().connections[0].roadDistanceMeters, 4860);
+  assert.equal(manager.getState().needsRoute, 0);
+});
+
+test("disambiguates duplicate institution names with a district instead of an internal id", () => {
+  const elements = { from: { innerHTML: "" }, to: { innerHTML: "" } };
+  const manager = createConnectionManager({ storage: createStorage(), elements });
+
+  manager.refreshInstitutions([
+    { id: "sch-kinder-0027", name: "해승유치원", address: "인천광역시 미추홀구 학익소로61번길 93", lat: 37.44, lng: 126.65 },
+    { id: "sch-kinder-0166", name: "해승유치원", address: "인천광역시 계양구 도두리로 54", lat: 37.53, lng: 126.74 },
+  ]);
+
+  assert.match(elements.from.innerHTML, />해승유치원 · 미추홀구<\/option>/);
+  assert.match(elements.from.innerHTML, />해승유치원 · 계양구<\/option>/);
+  assert.doesNotMatch(elements.from.innerHTML, />[^<]*sch-kinder-/);
 });
 
 test("rejects same endpoints, orphan ids, duplicates, bad styles, missing coordinates, and corrupt JSON", () => {
