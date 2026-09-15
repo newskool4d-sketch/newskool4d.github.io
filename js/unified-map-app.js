@@ -29,6 +29,7 @@ const state = {
   fittedOnce: false,
   selectedId: "",
   visibleRows: [],
+  filteredRows: [],
 };
 
 const $ = (selector) => document.querySelector(selector);
@@ -177,6 +178,7 @@ const renderFilterControls = () => {
   if (office) office.value = view.office;
   const includesSchools = view.types.includes("school");
   $("#level-filter").hidden = !includesSchools;
+  $("#office-scope-hint").hidden = !includesSchools;
   $("#school-assign-filters").hidden = !includesSchools;
   $("#region-filter").hidden = !view.types.some((type) => INFRA_TYPE_CODES.includes(type));
   fillSelect("#designation-filter", distinctOverrideValues(state.institutions, "designation"), view.designation);
@@ -185,12 +187,18 @@ const renderFilterControls = () => {
 
 const selectedInstitution = () => state.institutions.find((row) => row.id === state.selectedId) ?? null;
 
+// A selected institution only stays shown while it is part of the currently filtered list — otherwise a
+// selection made under one view/filter (e.g. before switching ?view=schools -> ?view=infra) would keep
+// displaying stale detail data for a row the visible list no longer contains.
+const isSelectedRowVisible = (row) => Boolean(row) && state.filteredRows.some((visible) => visible.id === row.id);
+
 const renderDetail = (message) => {
   const host = $("#institution-detail");
   const row = selectedInstitution();
+  const visible = isSelectedRowVisible(row);
   if (!host) return;
-  host.hidden = !row;
-  if (!row) return;
+  host.hidden = !visible;
+  if (!visible) return;
   setText("#detail-name", row.name);
   setText("#detail-summary", [INSTITUTION_TYPE_LABELS[row.type], SCHOOL_LEVEL_LABELS[row.level], OFFICE_LABELS[row.office], REGION_LABELS[row.region]].filter(Boolean).join(" · "));
   const isSchool = row.type === "school";
@@ -206,6 +214,7 @@ const renderDetail = (message) => {
 
 const renderRows = () => {
   const rows = filterInstitutions(state.institutions, toRepositoryFilters(state.view));
+  state.filteredRows = rows;
   renderCounts(rows);
   syncMarkerLayer(rows);
   const list = $("#institution-list");
@@ -356,6 +365,7 @@ const bindEvents = () => {
   $("#supervisor-filter")?.addEventListener("change", (event) => updateView({ supervisor: event.target.value }));
   document.querySelectorAll("[data-view-choice]").forEach((input) => input.addEventListener("change", () => {
     state.fittedOnce = false;
+    state.selectedId = "";
     updateView(presetFor(input.value));
   }));
   $(".um-filter-row")?.addEventListener("change", (event) => {

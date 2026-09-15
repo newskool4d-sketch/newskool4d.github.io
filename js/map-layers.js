@@ -2,14 +2,47 @@ import { INSTITUTION_TYPE_LABELS, OFFICE_LABELS, SCHOOL_LEVEL_LABELS } from "./c
 
 const CATEGORY_META = Object.freeze({
   headquarters: { label: "본청", className: "type-headquarters", color: "#746019" },
-  "support-office": { label: "교육지원청", className: "type-support-office", color: "#2a41b6" },
+  "support-office": { label: "교육지원청", className: "type-support-office", color: "#004c8c" },
   school: { label: "학교", className: "type-school", color: "#7a2455" },
   "direct-agency": { label: "직속기관", className: "type-direct-agency", color: "#1c1c1e" },
   library: { label: "도서관", className: "type-library", color: "#187574" },
   "experience-site": { label: "체험학습장", className: "type-experience-site", color: "#7a3d00" },
-  partner: { label: "협력기관", className: "type-partner", color: "#4262ff" },
-  imported: { label: "가져온 행", className: "type-imported", color: "#4262ff" },
+  partner: { label: "협력기관", className: "type-partner", color: "#0060b0" },
+  imported: { label: "가져온 행", className: "type-imported", color: "#0060b0" },
 });
+
+// Per-type marker glyph (shape/character) + color so category is never encoded by color alone (DESIGN.md §9).
+// Colors are drawn from the DESIGN.md category text-color table / ice-blue token family; none are deprecated tokens.
+const MARKER_STYLE_META = Object.freeze({
+  school: { glyph: "학", color: "#7a2455" },
+  headquarters: { glyph: "본", color: "#746019" },
+  "support-office": { glyph: "청", color: "#004c8c" },
+  "direct-agency": { glyph: "직", color: "#1c1c1e" },
+  library: { glyph: "도", color: "#187574" },
+  "experience-site": { glyph: "체", color: "#7a3d00" },
+  partner: { glyph: "협", color: "#0060b0" },
+  imported: { glyph: "가", color: "#0060b0" },
+});
+
+const DEFAULT_MARKER_STYLE = Object.freeze({ glyph: "기", color: "#6b6f7e" });
+
+export const markerStyleFor = (type) => MARKER_STYLE_META[type] ?? DEFAULT_MARKER_STYLE;
+
+const svgDataUri = (svg) => `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+
+// Compact filled circle for schools (highest-density layer) — 22x22, anchored at its own center.
+const circleMarkerSvg = ({ color, glyph }) => `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 22 22"><circle cx="11" cy="11" r="10" fill="${color}" stroke="#ffffff" stroke-width="2"/><text x="11" y="15" text-anchor="middle" font-size="11" font-family="sans-serif" font-weight="700" fill="#ffffff">${glyph}</text></svg>`;
+
+// Bottom-anchored pin for non-school institutions — 30x40, anchored at the pin tip so it points at its coordinate.
+const pinMarkerSvg = ({ color, glyph }) => `<svg xmlns="http://www.w3.org/2000/svg" width="30" height="40" viewBox="0 0 30 40"><path d="M15 40 C15 40 28 24.2 28 15 C28 6.716 22.284 1 15 1 C7.716 1 2 6.716 2 15 C2 24.2 15 40 15 40 Z" fill="${color}" stroke="#ffffff" stroke-width="2"/><circle cx="15" cy="15" r="9" fill="#ffffff"/><text x="15" y="19" text-anchor="middle" font-size="11" font-family="sans-serif" font-weight="700" fill="${color}">${glyph}</text></svg>`;
+
+export const markerIconSpecFor = (type) => {
+  const style = markerStyleFor(type);
+  if (type === "school") {
+    return { width: 22, height: 22, anchorX: 11, anchorY: 11, src: svgDataUri(circleMarkerSvg(style)) };
+  }
+  return { width: 30, height: 40, anchorX: 15, anchorY: 40, src: svgDataUri(pinMarkerSvg(style)) };
+};
 
 const text = (value) => String(value ?? "").trim();
 const escapeHtml = (value) => text(value).replace(/[&<>"']/g, (char) => ({
@@ -117,6 +150,20 @@ export const createInstitutionMapLayer = ({ mapSdk, map, elements = {} }) => {
   let markerById = new Map();
   let rowsById = new Map();
   let invalidRows = [];
+  const iconImageCache = new Map();
+
+  const iconImageFor = (type) => {
+    if (!maps.MarkerImage || !maps.Size || !maps.Point) return undefined;
+    if (iconImageCache.has(type)) return iconImageCache.get(type);
+    const spec = markerIconSpecFor(type);
+    const image = new maps.MarkerImage(
+      spec.src,
+      new maps.Size(spec.width, spec.height),
+      { offset: new maps.Point(spec.anchorX, spec.anchorY) },
+    );
+    iconImageCache.set(type, image);
+    return image;
+  };
 
   const clear = () => {
     if (clusterer?.clear) clusterer.clear();
@@ -133,7 +180,7 @@ export const createInstitutionMapLayer = ({ mapSdk, map, elements = {} }) => {
     const visibleRows = rows.filter(isMappable);
     markers = visibleRows.map((row) => {
       const position = new maps.LatLng(Number(row.lat), Number(row.lng));
-      const marker = new maps.Marker({ position, title: markerTitle(row), clickable: true });
+      const marker = new maps.Marker({ position, title: markerTitle(row), clickable: true, image: iconImageFor(row.type) });
       marker.__institutionId = row.id;
       markerById.set(row.id, marker);
       rowsById.set(row.id, row);

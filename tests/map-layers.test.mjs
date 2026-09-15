@@ -1,7 +1,15 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { buildInstitutionPopupHtml, createInstitutionMapLayer, filterRowsByMarkerLayers, markerLayerKeyFor } from "../js/map-layers.js";
+import { INSTITUTION_TYPE_CODES } from "../js/constants.js";
+import {
+  buildInstitutionPopupHtml,
+  createInstitutionMapLayer,
+  filterRowsByMarkerLayers,
+  markerIconSpecFor,
+  markerLayerKeyFor,
+  markerStyleFor,
+} from "../js/map-layers.js";
 
 const makeRows = (count) => Array.from({ length: count }, (_, index) => ({
   id: `synthetic-map-layer-${index + 1}`,
@@ -281,4 +289,55 @@ test("openById pans the map to the selected marker and reports unknown ids", () 
   assert.equal(layer.openById("synthetic-map-layer-2"), true);
   assert.equal(map.panned, created.markers[1].options.position);
   assert.equal(layer.openById("missing"), false);
+});
+
+test("marker styles pair a distinct glyph with a non-deprecated color for every institution type", () => {
+  const styles = INSTITUTION_TYPE_CODES.map((type) => markerStyleFor(type));
+
+  assert.equal(new Set(styles.map((style) => style.glyph)).size, INSTITUTION_TYPE_CODES.length);
+  assert.ok(styles.every((style) => /^#[0-9a-f]{6}$/iu.test(style.color)));
+  assert.equal(styles.some((style) => ["#2a41b6", "#4262ff"].includes(style.color.toLowerCase())), false);
+  assert.deepEqual(markerStyleFor("unknown-type"), { glyph: "기", color: "#6b6f7e" });
+});
+
+test("marker icon specs use a compact circle for schools and a bottom-anchored pin for institutions", () => {
+  const school = markerIconSpecFor("school");
+  const library = markerIconSpecFor("library");
+
+  assert.deepEqual([school.width, school.height, school.anchorX, school.anchorY], [22, 22, 11, 11]);
+  assert.deepEqual([library.width, library.height, library.anchorX, library.anchorY], [30, 40, 15, 40]);
+  assert.match(school.src, /^data:image\/svg\+xml;charset=utf-8,/u);
+  assert.match(decodeURIComponent(library.src), /<text[^>]*>도<\/text>/u);
+});
+
+test("sync attaches one shared marker image per institution type when the SDK supports images", () => {
+  const { mapSdk, created } = makeFakeKakao({ clusterer: false });
+  mapSdk.maps.Size = class {
+    constructor(width, height) {
+      this.width = width;
+      this.height = height;
+    }
+  };
+  mapSdk.maps.Point = class {
+    constructor(x, y) {
+      this.x = x;
+      this.y = y;
+    }
+  };
+  mapSdk.maps.MarkerImage = class {
+    constructor(src, size, options) {
+      this.src = src;
+      this.size = size;
+      this.options = options;
+    }
+  };
+  const layer = createInstitutionMapLayer({ mapSdk, map: makeMap() });
+
+  layer.sync(makeRows(6));
+  const [office, school, otherSchool] = created.markers;
+
+  assert.match(office.options.image.src, /^data:image\/svg\+xml/u);
+  assert.equal(office.options.image.options.offset.y, 40);
+  assert.equal(school.options.image.size.width, 22);
+  assert.equal(otherSchool.options.image, school.options.image);
 });
