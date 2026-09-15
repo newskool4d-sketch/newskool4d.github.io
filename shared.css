@@ -91,7 +91,7 @@ body {
 
 .gnb-badge {
   background: linear-gradient(135deg, var(--teal-light), var(--blue-light));
-  color: #0f172a;
+  color: #1c1c1e;
   font-weight: 800;
   padding: 6px 12px;
   border-radius: 8px;
@@ -316,7 +316,7 @@ a:focus-visible,
 /* Premium Buttons */
 button {
   background: linear-gradient(135deg, var(--teal-light), var(--blue-light));
-  color: #0f172a;
+  color: #1c1c1e;
   border: none;
   padding: 12px 20px;
   border-radius: 8px;
@@ -366,45 +366,6 @@ button:disabled {
   display: flex;
   flex-direction: column;
   gap: 12px;
-}
-
-.checkbox-container {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  cursor: pointer;
-  font-size: 15px;
-  user-select: none;
-}
-
-.checkbox-container input {
-  display: none;
-}
-
-.custom-checkbox {
-  width: 20px;
-  height: 20px;
-  border: 2px solid var(--text-sub);
-  border-radius: 6px;
-  display: inline-block;
-  position: relative;
-  transition: all 0.2s ease;
-}
-
-.checkbox-container input:checked + .custom-checkbox {
-  background: var(--teal-light);
-  border-color: var(--teal-light);
-}
-
-.checkbox-container input:checked + .custom-checkbox::after {
-  content: '✓';
-  position: absolute;
-  color: #0f172a;
-  font-size: 13px;
-  font-weight: bold;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
 }
 
 /* Map Area Layout */
@@ -529,7 +490,7 @@ button:disabled {
 
 .map-popup-link-btn:hover {
   background: var(--teal-light);
-  color: #0f172a;
+  color: #1c1c1e;
 }
 
 /* Placeholder for SDK loading */
@@ -768,7 +729,7 @@ button:disabled {
   margin-right: 7px;
   border-radius: 50%;
   background: var(--teal-light);
-  color: #0f172a;
+  color: #1c1c1e;
   font-size: 12px;
   font-weight: 900;
 }
@@ -795,7 +756,7 @@ button:disabled {
 .workflow-actions button.active,
 .workflow-actions .workflow-action.active {
   border-color: rgba(45, 212, 191, 0.65);
-  color: #0f172a;
+  color: #1c1c1e;
   background: linear-gradient(135deg, var(--teal-light), var(--blue-light));
 }
 
@@ -1094,7 +1055,7 @@ button { background: #1c1c1e !important; color: #fff !important; border-radius: 
 button:hover { background: #2c2c34 !important; box-shadow: none !important; }
 .btn-secondary, .btn-save-sv, .map-popup-link-btn { background: #fff !important; border-color: var(--border-color) !important; color: var(--text-main) !important; }
 .btn-secondary:hover, .btn-save-sv:hover, .map-popup-link-btn:hover { background: #e6f0f9 !important; color: #004c8c !important; }
-.checkbox-container input:checked + .custom-checkbox, .workflow-step-no { background: var(--accent) !important; border-color: var(--accent) !important; color: #fff !important; }
+.workflow-step-no { background: var(--accent) !important; border-color: var(--accent) !important; color: #fff !important; }
 .map-viewport { background: #e6f0f9 !important; }
 .map-toolbar { background: rgba(255,255,255,.96) !important; }
 .map-popup, .map-loader-card, .key-modal-content { background: #fff !important; border-color: var(--border-color) !important; color: var(--text-main) !important; box-shadow: 0 16px 40px rgba(5,0,56,.14) !important; }

@@ -252,3 +252,36 @@ S15·I12(목록 행 클릭 시 지도 무반응)는 원인이 동일하다. 서�
 | `README.md` 갱신 | 완료 | 공개 배포 범위 표에서 두 파일을 "화면"이 아닌 "스텁"으로 재분류, `shared.js` 행을 "공개 화면에서는 미사용"으로 별도 표기, 담당 장학사 공유 문장에서 `schools.html` 대신 구체적 localStorage 키를 명시 |
 | `docs/data-update-guide.md` 갱신 | 완료 | 데이터 기준일 문구 확인 대상을 4개 파일 → 2개 파일(`index.html`, `unified-map.html`)로 축소(스텁에는 기준일 문구가 없음) |
 | `tests/office-data.test.mjs` 삭제 | 완료(사용자 터미널에서 직접 실행 — 도구 정책상 자동 삭제 차단) | 검증하던 두 명제 중 "`schools.html` 하드코딩 사본이 `institutions.json`과 일치" 전제가 스텁 전환으로 소멸. "6개 office 레코드가 정확한 주소·좌표로 존재"는 `tests/infra-merge-data.test.mjs`가 27건 전량(6개 office 포함)을 이 테스트보다 더 엄격하게 이미 대조 중 — 커버리지 손실 없음 확인 |
+
+## 10. T8-1 폐기 토큰 · T2-④ 이모지 라벨 (2026-09-16)
+
+측정 기준: 추적 파일만(`git grep`·`git ls-files`), `vendor/`·`dist/` 제외.
+
+### 10-1. 폐기 토큰 — 완료(grep 0건)
+
+| 토큰 | 이전 | 이후 | 처리 |
+|---|---|---|---|
+| `#2a41b6` | 0건 | 0건 | 2차 이월분(§8) 마커 작업에서 이미 정리됨 |
+| `#4262ff` | 0건 | 0건 | 〃 |
+| `#0f172a` | 7건 | **0건** | `index.html` 1건은 **삭제**(같은 시트 뒤쪽 `.pin { color:#fff }`가 덮어써 렌더링에 도달하지 못하던 사문 선언 — 새 토큰으로 교체하면 죽은 코드에 새 토큰만 입히는 셈이라 제거). `shared.css` 6건 중 1건은 아래 죽은 위젯 블록과 함께 삭제, 나머지 5건은 ink 토큰 `#1c1c1e`로 교체(모두 밝은 그라디언트 위 `color:` 값이라 시각 차이 없음) |
+
+### 10-2. 이모지 라벨 — UI 파일 0건
+
+| 대상 | 결과 |
+|---|---|
+| `index.html`·`unified-map.html`·`schools.html`·`infrastructure.html`·`shared.css`·`atlas-theme.css`·`shared.js`·`js/*.js` | **0건** |
+| `shared.css`의 `✓` 1건 | 제거 — `.checkbox-container`/`.custom-checkbox` 위젯 CSS 39줄 전체를 삭제. 이 위젯은 추적 파일은 물론 비추적 로컬 페이지(`business.html`·`private-local-map.html`)에서도 사용처 0건으로 확인된 죽은 코드. 복합 선택자 1건은 `.workflow-step-no`만 남기고 분리(해당 클래스는 `business.html`에서 여전히 사용) |
+| `✕`·`💡`·`🌐` | T11 스텁화(§9)로 원본 페이지와 함께 이미 소멸 |
+| `shared.js`의 과거 `❌`·`⏱️` | 현재 0건으로 실측 확인(`improvement-report(2026-07-05).md`의 "미이행" 기록은 그 사이 해소됨) |
+
+유지 판정: 문서 산문의 화살표(`→`·`↔`), 실제 파일명에 포함된 `★`, CLI 스크립트(`tools/validate-coordinates.mjs`)의 `✖`, 목록 항목의 출발지→도착지 연결자(`js/connection-layer.js:185`)는 DESIGN.md §3이 금지하는 "가시적 라벨 대체물"이 아니므로 유지한다. 과업 설명문(`docs/improvement-plan-2026-09-15.md` T2-④ 행 등)에 인용된 금지 문자도 설명 자체가 목적이므로 유지.
+
+### 10-3. `!important` 축소 — 부분 달성(42.2%, 목표 50% 미달)
+
+| 파일 | 이전 | 이후 | 감소 |
+|---|---|---|---|
+| `atlas-theme.css` | 415건 / 742줄 | 240건 / 469줄 | **175건(42.2%)**, 죽은 규칙 71개 제거 |
+
+판정 방법(CSS 의미 기준): `atlas-theme.css`를 읽는 페이지는 `index.html`·`unified-map.html` 2개뿐이다(T11 스텁 2종과 비추적 로컬 페이지 2종은 이 시트를 링크하지 않음 — 실측 확인). 따라서 생존 토큰 집합 = 두 HTML + `js/*.js`(런타임에 DOM을 생성하므로 포함)에 등장하는 토큰. 복합 선택자는 **모든** 클래스가 생존 집합에 있어야 live로 보고(`.a.b`는 둘 다 존재해야 매칭), 콤마 목록은 **모든** 선택자가 dead일 때만 삭제했다. 요소·id·속성 선택자는 보수적으로 유지. 제거된 71개는 대부분 `.gnb-*`(생성기 `injectSharedGNB`가 있는 `shared.js`를 로드하는 추적 페이지가 0건이 되어 사멸)와 `.school-card`·`.workflow-*`·`.supervisor-box` 등 구형 페이지 전용 클래스다.
+
+잔여 240건은 대부분 `.um-*` 실사용 규칙으로, `unified-map.html`의 인라인 `<style>`을 덮기 위해 존재한다. 50% 목표를 채우려면 이 두 시트를 병합해야 하고 이는 화면 회귀 검증(스크린샷 전후 대조)을 동반하는 별도 변경이므로 **이월**한다.
