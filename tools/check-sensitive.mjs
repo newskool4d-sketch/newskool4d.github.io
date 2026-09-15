@@ -22,10 +22,15 @@ const ALLOWED_CSV = new Set([
 ]);
 
 // 실키 패턴 (문서의 "KakaoAK ${...}" 같은 설명 문구는 매칭되지 않도록 32자 hex 요구)
+// NCP(네이버 클라우드 플랫폼) 패턴은 20자 이상 요구 — tests/sites-worker-directions.test.mjs의
+// 더미값("server-id" 9자, "server-secret" 13자)과 env.NAVER_DIRECTIONS_CLIENT_ID 같은 코드상
+// 변수 참조(콜론/등호 없이 바로 이어짐)는 통과시키고, 실제 자격증명 형태만 검출한다.
 const KEY_PATTERNS = [
   { name: "Kakao REST key (KakaoAK + 32-hex)", re: /KakaoAK\s+[0-9a-f]{32}/i },
   { name: "Kakao JS key (appkey= + 32-hex)", re: /appkey=[0-9a-f]{32}/i },
   { name: "KAKAO_REST_API_KEY 대입", re: /KAKAO_REST_API_KEY\s*[:=]\s*["']?[0-9a-f]{8,}/i },
+  { name: "NAVER_DIRECTIONS_CLIENT_ID/_SECRET 실값 대입", re: /NAVER_DIRECTIONS_CLIENT_(ID|SECRET)\s*[:=]\s*["'][A-Za-z0-9+/_-]{20,}["']/ },
+  { name: "NCP API 키 헤더(x-ncp-apigw-api-key) 실값 대입", re: /x-ncp-apigw-api-key(-id)?["']?\s*[:=]\s*["'][A-Za-z0-9+/_-]{20,}["']/i },
 ];
 
 const SCAN_EXTENSIONS = /\.(html|js|mjs|css|json|md|py|yml|yaml|txt|csv)$/i;
