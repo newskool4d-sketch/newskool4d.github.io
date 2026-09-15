@@ -7,7 +7,7 @@ import {
   OFFICE_LABELS,
   OFFICE_SOURCE_CODES,
 } from "./constants.js";
-import { normalizeRoadRoute } from "./directions-service.js";
+import { hasStoredRouteData, extractStoredRouteFields } from "./directions-service.js";
 
 const text = (value) => String(value ?? "").trim();
 
@@ -244,25 +244,10 @@ export const validateConnectionSet = (input) => {
     if (!CONNECTION_STROKE_SET.has(strokeStyle)) {
       errors.push(rowError({ rowNumber, field: "strokeStyle", code: "invalid_stroke_style", message: "Connection stroke style is not allowed." }));
     }
-    const hasRouteData = [connection.routeProvider, connection.routePath, connection.roadDistanceMeters, connection.roadDurationMillis, connection.routedAt]
-      .some((value) => value !== undefined && value !== null && value !== "");
     let routeFields = {};
-    if (hasRouteData) {
+    if (hasStoredRouteData(connection)) {
       try {
-        const route = normalizeRoadRoute({
-          provider: connection.routeProvider,
-          path: connection.routePath,
-          distanceMeters: connection.roadDistanceMeters,
-          durationMillis: connection.roadDurationMillis,
-          routedAt: connection.routedAt,
-        });
-        routeFields = {
-          routeProvider: route.provider,
-          routePath: route.path,
-          roadDistanceMeters: route.distanceMeters,
-          roadDurationMillis: route.durationMillis,
-          routedAt: route.routedAt,
-        };
+        routeFields = extractStoredRouteFields(connection);
       } catch (error) {
         errors.push(rowError({ rowNumber, field: "routePath", code: error.code || "invalid_route", message: error.message }));
       }

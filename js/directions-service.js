@@ -46,6 +46,36 @@ export const normalizeRoadRoute = (payload) => {
   };
 };
 
+// Stored-route field mapping shared by js/connection-layer.js and
+// js/institution-schema.js. Both modules normalize the same persisted
+// connection fields (routeProvider/routePath/roadDistanceMeters/
+// roadDurationMillis/routedAt) through normalizeRoadRoute() on save and
+// again on load — this lives here once instead of twice (2026-09 review M3).
+const STORED_ROUTE_FIELDS = ["routeProvider", "routePath", "roadDistanceMeters", "roadDurationMillis", "routedAt"];
+
+export const hasStoredRouteData = (row) => STORED_ROUTE_FIELDS
+  .some((field) => row?.[field] !== undefined && row?.[field] !== null && row?.[field] !== "");
+
+// Normalizes a stored connection row's route fields, or throws RoadRouteError
+// (same as normalizeRoadRoute) when they don't form a valid route. Callers
+// keep their own try/catch so each can shape its own row-level error object.
+export const extractStoredRouteFields = (row) => {
+  const route = normalizeRoadRoute({
+    provider: row.routeProvider,
+    path: row.routePath,
+    distanceMeters: row.roadDistanceMeters,
+    durationMillis: row.roadDurationMillis,
+    routedAt: row.routedAt,
+  });
+  return {
+    routeProvider: route.provider,
+    routePath: route.path,
+    roadDistanceMeters: route.distanceMeters,
+    roadDurationMillis: route.durationMillis,
+    routedAt: route.routedAt,
+  };
+};
+
 const endpoint = (row, name) => {
   if (!isCoordinate(row?.lat, row?.lng)) {
     throw new RoadRouteError(`${name} institution needs valid coordinates.`, { code: "invalid_route_endpoint" });

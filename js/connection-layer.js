@@ -1,5 +1,5 @@
 import { CONNECTION_COLOR_VALUES, CONNECTION_STROKE_STYLES } from "./constants.js";
-import { fetchRoadRoute, normalizeRoadRoute } from "./directions-service.js";
+import { fetchRoadRoute, normalizeRoadRoute, hasStoredRouteData, extractStoredRouteFields } from "./directions-service.js";
 import { loadConnections, saveConnections } from "./institution-repository.js";
 
 const VERSION = 1;
@@ -30,14 +30,6 @@ const storedRouteFields = (route) => ({
   roadDistanceMeters: route.distanceMeters,
   roadDurationMillis: route.durationMillis,
   routedAt: route.routedAt,
-});
-
-const normalizeStoredRoute = (row) => normalizeRoadRoute({
-  provider: row.routeProvider,
-  path: row.routePath,
-  distanceMeters: row.roadDistanceMeters,
-  durationMillis: row.roadDurationMillis,
-  routedAt: row.routedAt,
 });
 
 export const createConnectionDraft = ({ id = "", fromId = "", toId = "", color = "blue", strokeStyle = "solid", label = "", route = null, now = () => new Date().toISOString() } = {}) => {
@@ -93,11 +85,9 @@ export const serializeConnectionSet = (input) => {
     if (idCounts.get(connection.id) > 1) rowErrors.push(rowError({ rowNumber, field: "id", code: "duplicate_connection_id", message: "Connection id must be unique.", id: connection.id }));
     if (!COLOR_CODES.includes(connection.color)) rowErrors.push(rowError({ rowNumber, field: "color", code: "invalid_color", message: "Connection color is not allowed.", id: connection.id }));
     if (!STROKE_SET.has(connection.strokeStyle)) rowErrors.push(rowError({ rowNumber, field: "strokeStyle", code: "invalid_stroke_style", message: "Connection stroke style is not allowed.", id: connection.id }));
-    const hasRouteData = [row.routeProvider, row.routePath, row.roadDistanceMeters, row.roadDurationMillis, row.routedAt]
-      .some((value) => value !== undefined && value !== null && value !== "");
-    if (hasRouteData) {
+    if (hasStoredRouteData(row)) {
       try {
-        Object.assign(connection, storedRouteFields(normalizeStoredRoute(row)));
+        Object.assign(connection, extractStoredRouteFields(row));
       } catch (error) {
         rowErrors.push(rowError({ rowNumber, field: "routePath", code: error.code || "invalid_route", message: error.message, id: connection.id }));
       }
