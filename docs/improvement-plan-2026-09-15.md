@@ -172,7 +172,9 @@
 
 **게이트**: R2 기록 존재(성공 또는 동결 결정).
 
-**2단계 진행 현황 (2026-09-15)**: R4 완료(`js/connection-layer.js`·`js/institution-schema.js`의 저장 경로 정규화 중복을 `js/directions-service.js`의 `hasStoredRouteData`·`extractStoredRouteFields`로 통합, 63/63 테스트 유지, 에러 형태 차이는 보존). R3는 **동결이 아니라 문서 정정**으로 처리 — Pages 정본에서 도로경로가 안 되는 것은 확인된 사실(0단계에서 실측)이지만, Sites worker 자체가 분산 요청 제한을 지원하는지는 **미확인**(반박 아님)이므로 "동결"이라고 쓰지 않음. `DESIGN.md` §1·§9에 이 구분을 명시. **R1·R2는 열린 채로 남음** — `git ls-remote sites`가 이 세션에서 타임아웃(원격 자체가 이 환경에서 접근 불가, 호스팅의 `limit({key})` 지원 여부와는 무관). `sites` 원격에 접근 가능한 세션 또는 사용자가 직접 이어서 진행 가능. `sites`로는 push하지 않음(origin 승인과 별개 사안).
+**2단계 진행 현황 (2026-09-15)**: R4 완료(`js/connection-layer.js`·`js/institution-schema.js`의 저장 경로 정규화 중복을 `js/directions-service.js`의 `hasStoredRouteData`·`extractStoredRouteFields`로 통합, 63/63 테스트 유지, 에러 형태 차이는 보존). R3는 **동결이 아니라 문서 정정**으로 처리 — Pages 정본에서 도로경로가 안 되는 것은 확인된 사실(0단계에서 실측)이지만, Sites worker 자체가 분산 요청 제한을 지원하는지는 **미확인**(반박 아님)이므로 "동결"이라고 쓰지 않음. `DESIGN.md` §1·§9에 이 구분을 명시. **R1·R2는 열린 채로 남음**.
+
+**진단 정정 (같은 날 늦게 확인)**: 처음에는 `git ls-remote sites`가 5초 타임아웃돼 "원격 접근 불가"로 기록했으나, 백그라운드로 더 오래 실행한 `git fetch sites`가 나중에 완료되며 실제 원인이 드러났다 — `fatal: User cancelled dialog.` / `could not read Username for 'https://git.chatgpt-team.site'`. 즉 **원격 자체는 응답하지만 자격증명(HTTP Basic 인증 등) 프롬프트가 필요**하고, 이 비대화형 세션은 그 프롬프트에 응답할 방법이 없어 대기하다 취소된 것이다("네트워크 접근 불가"가 아니라 "이 세션에 자격증명 없음"). 로컬에 캐시된 `sites/main`은 여전히 `d26bb21`(2026-07-17)에 머물러 있으며 현재 main보다 21커밋 뒤처져 있다. 다음 세션에서 이어가려면: 사용자가 대화형 터미널에서 직접 `git fetch sites`·`git push sites main`을 실행하거나(자격증명 프롬프트에 응답 가능), 또는 이 host용 git 자격증명을 사전에 설정해 두면 비대화형 세션도 가능해진다. `sites`로는 이 세션에서 push하지 않음(origin 승인과 별개 사안이며, 애초에 인증 실패로 시도조차 못 함).
 
 ### 3단계 — 단일화·디자인 완결 (1~2개월)
 
