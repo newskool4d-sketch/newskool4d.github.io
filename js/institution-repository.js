@@ -1,3 +1,4 @@
+import { INSTITUTION_TYPE_LABELS, OFFICE_LABELS, REGION_LABELS, SCHOOL_LEVEL_LABELS } from "./constants.js";
 import { validateConnectionSet, validateInstitution } from "./institution-schema.js";
 import { readVersionedJson, STORAGE_KEYS, writeVersionedJson } from "./storage.js";
 
@@ -194,14 +195,31 @@ const matchesCustomFields = (institution, customFields) => {
   ));
 };
 
+const designationTokens = (value) => text(value).split(";").map(text).filter(Boolean);
+
+const matchesList = (value, allowed) => !Array.isArray(allowed) || !text(value) || allowed.includes(text(value));
+
 const matchesSearch = (institution, query) => {
   const normalizedQuery = lowerText(query);
   if (!normalizedQuery) {
     return true;
   }
   const customText = Object.values(institution.customFields ?? {}).map(text).join(" ");
-  return [institution.name, institution.address, institution.office, institution.type, institution.level, institution.designation, customText]
-    .some((value) => lowerText(value).includes(normalizedQuery));
+  return [
+    institution.name,
+    institution.address,
+    institution.office,
+    OFFICE_LABELS[institution.office],
+    institution.type,
+    INSTITUTION_TYPE_LABELS[institution.type],
+    institution.level,
+    SCHOOL_LEVEL_LABELS[institution.level],
+    REGION_LABELS[institution.region],
+    institution.designation,
+    institution.supervisor,
+    institution.description,
+    customText,
+  ].some((value) => lowerText(value).includes(normalizedQuery));
 };
 
 export const filterInstitutions = (institutions, filters = {}) => institutions.filter((institution) => {
@@ -212,6 +230,18 @@ export const filterInstitutions = (institutions, filters = {}) => institutions.f
     return false;
   }
   if (filters.level && filters.level !== "all" && text(institution.level) !== text(filters.level)) {
+    return false;
+  }
+  if (Array.isArray(filters.types) && !filters.types.includes(institution.type)) {
+    return false;
+  }
+  if (!matchesList(institution.level, filters.levels) || !matchesList(institution.region, filters.regions)) {
+    return false;
+  }
+  if (institution.type === "school" && text(filters.designation) && !designationTokens(institution.designation).includes(text(filters.designation))) {
+    return false;
+  }
+  if (institution.type === "school" && text(filters.supervisor) && text(institution.supervisor) !== text(filters.supervisor)) {
     return false;
   }
   if (!matchesSearch(institution, filters.search)) {

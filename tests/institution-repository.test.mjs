@@ -283,3 +283,35 @@ test("search matches designation values such as 연구학교", () => {
   const filtered = filterInstitutions(rows, { search: "연구학교" });
   assert.deepEqual(filtered.map((row) => row.id), ["a"]);
 });
+
+test("filters by type, level, and region lists while value-less rows pass list filters", () => {
+  const rows = [
+    { id: "elem", type: "school", level: "elem" },
+    { id: "high", type: "school", level: "high" },
+    { id: "lib-city", type: "library", region: "incheon-city" },
+    { id: "isec-ganghwa", type: "experience-site", region: "ganghwa" },
+    { id: "office", type: "headquarters" },
+  ];
+
+  assert.deepEqual(filterInstitutions(rows, { types: ["school"] }).map((row) => row.id), ["elem", "high"]);
+  assert.deepEqual(filterInstitutions(rows, { types: ["school"], levels: ["high"] }).map((row) => row.id), ["high"]);
+  assert.deepEqual(
+    filterInstitutions(rows, { types: ["library", "experience-site", "headquarters"], regions: ["ganghwa"] }).map((row) => row.id),
+    ["isec-ganghwa", "office"],
+  );
+  assert.deepEqual(filterInstitutions(rows, { types: [] }), []);
+});
+
+test("applies designation and supervisor filters to schools only and searches Korean labels", () => {
+  const rows = [
+    { id: "a", name: "가초", type: "school", office: "west", level: "elem", designation: "연구학교; 선도학교", supervisor: "김장학" },
+    { id: "b", name: "나중", type: "school", office: "east", level: "mid", designation: "연구학교선도" },
+    { id: "c", name: "교육청 자료실", type: "library", office: "main", region: "ganghwa" },
+  ];
+
+  assert.deepEqual(filterInstitutions(rows, { designation: "선도학교" }).map((row) => row.id), ["a", "c"]);
+  assert.deepEqual(filterInstitutions(rows, { supervisor: "김장학" }).map((row) => row.id), ["a", "c"]);
+  assert.deepEqual(filterInstitutions(rows, { search: "서부교육지원청" }).map((row) => row.id), ["a"]);
+  assert.deepEqual(filterInstitutions(rows, { search: "중학교" }).map((row) => row.id), ["b"]);
+  assert.deepEqual(filterInstitutions(rows, { search: "강화도" }).map((row) => row.id), ["c"]);
+});
