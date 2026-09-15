@@ -12,7 +12,6 @@ const textAssets = [
   "unified-map.html",
   "shared.css",
   "atlas-theme.css",
-  "shared.js",
   "vendor/xlsx.full.min.js",
   "data/connections.json",
   "data/infra.json",

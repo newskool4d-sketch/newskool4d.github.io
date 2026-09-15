@@ -17,8 +17,10 @@
 
 | 파일·폴더 | 공개 배포 여부 | 용도 |
 | --- | --- | --- |
-| `index.html`, `schools.html`, `infrastructure.html`, `unified-map.html` | 포함 | 공개 지도 4개 화면 |
-| `shared.css`, `shared.js`, `atlas-theme.css` | 포함 | 공개 지도 공통 디자인·GNB·지도 SDK 로더 |
+| `index.html`, `unified-map.html` | 포함 | 공개 지도 화면 2개 |
+| `schools.html`, `infrastructure.html` | 포함 | 구형 화면(2026-09-15 T11부터 리다이렉트 스텁 — `unified-map.html?view=schools`/`?view=infra`로 즉시 이동, 1배포 주기 뒤 제거 예정) |
+| `shared.css`, `atlas-theme.css` | 포함 | 공개 지도 공통 디자인·지도 SDK 로더 |
+| `shared.js` | 포함(공개 화면에서는 미사용) | 과거 `schools.html`·`infrastructure.html`의 GNB 렌더링 함수. 스텁 전환으로 두 파일 모두 더는 로드하지 않으며, 로컬 비공개 도구에서만 계속 사용 |
 | `js/*.js` | 포함 | `unified-map.html` ES 모듈(공급자 어댑터, 가져오기, 스키마, 도로경로 클라이언트 등) |
 | `data/schools.json`, `data/infra.json`, `data/institutions.json`, `data/connections.json`, `data/schools-directory-metadata.json` | 포함 | 공개 가능한 학교·기관 데이터와 출처 메타데이터 |
 | `data/institutions.sample.csv`, `data/qa/synthetic-1000.csv` | 포함 | 가져오기 템플릿·QA 픽스처(허용 목록, `tools/check-sensitive.mjs` 참조) |
@@ -35,7 +37,7 @@
 | `unified-map.html?view=schools` | 학교(학교급·지정교유형·담당 장학사 필터) |
 | `unified-map.html?view=infra` | 교육기관·체험처(유형·권역 필터) |
 
-필터와 지도 위치는 주소에 저장되어 새로고침·공유 시 그대로 복원됩니다. 담당 장학사·지정교유형은 이 브라우저에만 저장되며 `schools.html`과 같은 저장값을 공유합니다.
+필터와 지도 위치는 주소에 저장되어 새로고침·공유 시 그대로 복원됩니다. 담당 장학사·지정교유형은 이 브라우저에만 저장되며, 과거 `schools.html`이 쓰던 저장값(`incheon_school_supervisors`, `incheon_school_designations`)과 같은 키를 그대로 읽고 씁니다.
 
 ## 지도 공급자 설정 (네이버 기본 · 카카오 대체)
 

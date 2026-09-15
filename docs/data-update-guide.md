@@ -56,15 +56,13 @@
    ```bash
    npm run validate:data
    ```
-2. `data/schools-directory-metadata.json`의 `sourceDate`를 확인하고, 아래 4개 파일에 하드코딩된 고지 기준일 문자열을 동일한 값으로 갱신한다(정적 HTML은 JSON을 읽지 못하므로 자동 동기화가 없다 — 4곳 모두 수동 확인 필수):
+2. `data/schools-directory-metadata.json`의 `sourceDate`를 확인하고, 아래 2개 파일에 하드코딩된 고지 기준일 문자열을 동일한 값으로 갱신한다(정적 HTML은 JSON을 읽지 못하므로 자동 동기화가 없다 — 2곳 모두 수동 확인 필수. `schools.html`·`infrastructure.html`은 2026-09-15 T11부터 리다이렉트 스텁이라 기준일 문구가 없음 — 갱신 대상 아님):
    - `index.html` (`.deploy-note` "데이터 기준")
-   - `schools.html` (`.data-disclaimer`)
-   - `infrastructure.html` (`.data-disclaimer`)
    - `unified-map.html` (`.um-disclaimer`)
 
    확인 명령(치환 후 재확인용):
    ```bash
-   grep -n "2026.4.1. 기준" index.html schools.html infrastructure.html unified-map.html
+   grep -n "2026.4.1. 기준" index.html unified-map.html
    ```
 3. 전체 테스트·구문·민감파일 게이트:
    ```bash
