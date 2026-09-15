@@ -25,6 +25,7 @@ const textAssets = [
   "js/geocode-cache.js",
   "js/geocode-queue.js",
   "js/importer.js",
+  "js/institution-overrides.js",
   "js/institution-repository.js",
   "js/institution-schema.js",
   "js/map-layers.js",
