@@ -6,6 +6,7 @@ import {
   OFFICE_ALIASES,
   OFFICE_LABELS,
   OFFICE_SOURCE_CODES,
+  REGION_CODES,
 } from "./constants.js";
 import { hasStoredRouteData, extractStoredRouteFields } from "./directions-service.js";
 
@@ -29,6 +30,7 @@ const TYPE_ALIAS_INDEX = buildAliasIndex(INSTITUTION_TYPE_ALIASES);
 const SOURCE_CODE_SET = new Set(OFFICE_SOURCE_CODES);
 const CONNECTION_COLOR_SET = new Set(CONNECTION_COLOR_CODES);
 const CONNECTION_STROKE_SET = new Set(CONNECTION_STROKE_STYLES);
+const REGION_SET = new Set(REGION_CODES);
 
 const rowError = ({ rowNumber = null, field, code, message }) => ({
   rowNumber,
@@ -111,6 +113,7 @@ export const validateInstitution = (row, context = {}) => {
   const address = text(row.address);
   const lat = parseCoordinate(row.lat);
   const lng = parseCoordinate(row.lng);
+  const region = text(row.region);
 
   if (!id) {
     errors.push(rowError({ rowNumber, field: "id", code: "missing_id", message: "Institution id is required." }));
@@ -123,6 +126,9 @@ export const validateInstitution = (row, context = {}) => {
   }
   if (!office.isKnown) {
     warnings.push(rowError({ rowNumber, field: "office", code: "unknown_office", message: "Unknown office normalized to unassigned." }));
+  }
+  if (region && !REGION_SET.has(region)) {
+    warnings.push(rowError({ rowNumber, field: "region", code: "unknown_region", message: "Unknown region was dropped." }));
   }
   if (!officeSource || !SOURCE_CODE_SET.has(officeSource)) {
     errors.push(rowError({ rowNumber, field: "officeSource", code: "invalid_office_source", message: "officeSource must be explicit, inferred, default, or imported." }));
@@ -155,6 +161,7 @@ export const validateInstitution = (row, context = {}) => {
       address,
       lat: Number.isFinite(lat) ? lat : undefined,
       lng: Number.isFinite(lng) ? lng : undefined,
+      region: REGION_SET.has(region) ? region : undefined,
     },
     errors,
     warnings,

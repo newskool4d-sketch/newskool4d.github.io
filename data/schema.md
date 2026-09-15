@@ -51,6 +51,9 @@ Institution type codes:
 | `url` | URL | Public website URL. | No | Yes | Yes | Yes |
 | `description` | 설명 | Short public description. | No | Yes | Yes | Yes |
 | `tags` | 태그 | Comma-separated or array-like labels for filtering. | No | Yes | Yes | Yes |
+| `region` | 권역 | One of `ganghwa`(강화도·교동도 권역), `yeongjong`(영종도 권역), `incheon-city`(인천 시내 권역). Unknown values are dropped with a warning. Required for every non-school, non-imported row in `data/institutions.json`. | No | Yes | Yes | Yes |
+| `designation` | 지정교유형 | Semicolon-joined labels such as `연구학교; 선도학교`. Browser edits are stored under `incheon_school_designations` and override the dataset value. | No | Yes | Yes | Yes |
+| `supervisor` | 담당 장학사 | Browser-only assignment stored under `incheon_school_supervisors`; never shipped in data files. | No | Browser only | Yes | Yes |
 
 ## Custom Columns
 

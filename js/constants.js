@@ -89,3 +89,39 @@ export const CONNECTION_STROKE_STYLES = Object.freeze([
   "dashed",
   "dotted",
 ]);
+
+export const REGION_CODES = Object.freeze([
+  "ganghwa",
+  "yeongjong",
+  "incheon-city",
+]);
+
+export const REGION_LABELS = Object.freeze({
+  ganghwa: "강화도·교동도 권역",
+  yeongjong: "영종도 권역",
+  "incheon-city": "인천 시내 권역",
+});
+
+export const SCHOOL_LEVEL_CODES = Object.freeze([
+  "kinder",
+  "elem",
+  "mid",
+  "high",
+  "special",
+  "alt",
+  "foreign",
+  "broadcast",
+  "lifelong",
+]);
+
+export const SCHOOL_LEVEL_LABELS = Object.freeze({
+  kinder: "유치원",
+  elem: "초등학교",
+  mid: "중학교",
+  high: "고등학교",
+  special: "특수학교",
+  alt: "각종학교",
+  foreign: "외국교육기관",
+  broadcast: "방송통신중고",
+  lifelong: "학력인정평생",
+});

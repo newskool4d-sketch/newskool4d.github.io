@@ -175,3 +175,23 @@ test("validates versioned connection data when connections is an array", async (
   assert.equal(result.value.version, 1);
   assert.ok(Array.isArray(result.value.connections));
 });
+
+test("keeps canonical regions and drops unknown regions with a warning", () => {
+  const base = {
+    id: "region-1",
+    name: "권역 기관",
+    type: "library",
+    office: "main",
+    officeSource: "explicit",
+    address: "인천광역시 남동구 정각로 9",
+  };
+
+  const kept = validateInstitution({ ...base, region: "ganghwa" }, { rowNumber: 1 });
+  const dropped = validateInstitution({ ...base, region: "제주" }, { rowNumber: 2 });
+
+  assert.equal(kept.value.region, "ganghwa");
+  assert.equal(kept.warnings.length, 0);
+  assert.equal(dropped.isValid, true);
+  assert.equal(dropped.value.region, undefined);
+  assert.equal(dropped.warnings[0].code, "unknown_region");
+});
