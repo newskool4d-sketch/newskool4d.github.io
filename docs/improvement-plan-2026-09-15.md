@@ -143,6 +143,8 @@
 
 **0단계 완료 (2026-09-15)**: S1(훅 디렉터리 부재 확인 후 제거)·S2(`.gitignore` 보강)·S4(민감정보 리터럴 0건 확인 → 14커밋 push, CI·Pages 배포 success, 운영 URL 네이버 공급자 확인)·S3(어드바이저 권고에 따라 push 이후 순서로 이동 — `git add --renormalize` 결과 실제 콘텐츠 변경 0건, 저장된 git 객체는 이미 LF로 일관 저장되어 있었음이 판명됨. `.gitattributes`만 추가해 재발 방지) 전부 완료, 커밋 `423ff4d`까지 CI green. 부수 발견: 정적 Pages에서 `/api/directions`가 GitHub Pages 자체 404(HTML)를 반환 — §1-5-1 참조.
 
+**S3 관련 후속 정정 (2026-09-15, 1단계 도중 발견)**: S3 당시 "`git add --renormalize` 결과 콘텐츠 변경 0건"은 **워킹 트리가 아직 편집되지 않은 시점**에서만 참이었다. 1단계에서 Edit 도구로 4개 HTML·`shared.css`를 수정한 뒤 `npm run build:sites`로 재빌드하자, Windows 워킹 트리의 CRLF(자동 체크아웃 시 `core.autocrlf=true`가 만들어낸 것 — git 객체 자체는 여전히 LF)가 그대로 worker 산출물에 임베드되어 커밋됐다. Linux 기반 GitHub Actions는 같은 `.gitattributes`(`eol=lf`)로 체크아웃하지만 LF로 정규화되므로, CI가 재빌드한 결과와 커밋된 `dist/server/index.js`가 어긋나 T1 push 직후 CI가 실패했다(신규 동기화 테스트가 정확히 의도대로 이를 잡아냄). `.gitattributes`만 추가하고 워킹 트리 자체를 새로고침(체크아웃)하지 않으면 이 문제가 재발한다 — 조치: 추적 파일 전체를 커밋된 blob 내용과 바이트 단위로 일치시켜 워킹 트리를 LF로 강제 정규화(콘텐츠 변경 없음, `git diff` 0건 확인 후 stat 캐시만 `git add -u`로 갱신), worker 재빌드 후 CI 재검증. 향후 Windows 세션에서 새로 clone하거나 오래 방치된 워킹 트리로 이 저장소를 다룰 때 동일 증상이 재발할 수 있음 — 증상: `dist/server/index.js` 관련 테스트만 로컬에서는 통과하나 CI에서만 실패.
+
 ### 1단계 — 안정화 잔여 완결 (1~2주)
 
 | 과제 | 작업 | 대상 | 규모 | 완료 기준 |
