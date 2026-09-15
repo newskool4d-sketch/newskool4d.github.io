@@ -31,6 +31,7 @@ const textAssets = [
   "js/map-provider.js",
   "js/storage.js",
   "js/unified-map-app.js",
+  "js/view-state.js",
 ];
 
 const DIRECTIONS_UPSTREAM_TIMEOUT_MS = 8000;
