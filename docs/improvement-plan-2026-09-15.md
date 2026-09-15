@@ -87,6 +87,11 @@
 | L1 | 테스트 주석 960교(실제 967) | 잔존 |
 | L2 | CRLF 경고 16파일 | 잔존 |
 
+### 1-5-1. 0단계 push 후 실측 발견 (2026-09-15)
+
+- push(`ea32af6`) 후 CI(`verify`)·`pages build and deployment` 모두 success. 운영 URL이 네이버 공급자·Civic Atlas 버전으로 갱신됨을 확인(공급자 모달에 "네이버 지도 · 권장" 노출).
+- **신규 발견**: 정적 GitHub Pages에는 `/api/directions` 라우트가 없어 GitHub Pages 자체의 404 HTML을 반환한다(`content-type: text/html`, JSON 아님). `js/directions-service.js`의 `fetchRoadRoute`는 `response.json().catch(() => ({}))`로 페이로드를 `{}`로 대체한 뒤 `!response.ok`이므로 `RoadRouteError(code: "directions_request_failed")`를 던진다. `DESIGN.md` §9가 명시한 `configuration-error` 상태가 아니라 일반 오류 문구로 노출됨 — N1(C안: Pages 정본) 채택 시 도로경로 UI 카피를 "미제공" 문구로 명시 교정 필요(2단계 R3에 편입, 정적 배포 자체의 결함은 아님).
+
 ### 1-6. 세션 도구 결함 (이전 시도 실패의 유력 원인, 추정)
 
 - 앱 루트 `.claude/settings.json`의 PreToolUse·PostToolUse·Stop 훅이 `~/.claude/why-was-fable-banned/adapters/hooks/*.py`를 호출하나 **파일이 존재하지 않음** → `python3` 종료코드 2 실측 → 이 폴더에서 세션을 시작하면 Edit/Write 도구가 차단됨
