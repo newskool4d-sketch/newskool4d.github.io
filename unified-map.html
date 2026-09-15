@@ -640,6 +640,45 @@
       overflow-wrap: anywhere;
     }
 
+    .um-filter-row {
+      grid-column: 1 / -1;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: var(--um-space-3);
+    }
+
+    .um-check-group {
+      min-width: 0;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: var(--um-space-2);
+      margin: 0;
+      padding: 0;
+      border: 0;
+    }
+
+    .um-check-group legend {
+      float: left;
+      margin-right: var(--um-space-1);
+    }
+
+    .um-row-focus {
+      padding: 0;
+      border: 0;
+      background: none;
+      color: var(--um-ink-deep);
+      font: inherit;
+      font-weight: 800;
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .um-row-focus:hover {
+      text-decoration: underline;
+    }
+
     @media (max-width: 1100px) {
       .um-toolbar {
         grid-template-columns: minmax(0, 1fr) auto;
@@ -734,9 +773,15 @@
     <section class="um-toolbar" aria-label="지도 필터와 데이터 작업">
       <label>
         <span class="um-note">검색</span>
-        <input id="search-input" class="um-search" type="search" placeholder="기관명, 주소, 유형, 업로드 필드 검색">
+        <input id="search-input" class="um-search" type="search" placeholder="기관명, 주소, 지원청, 학교급, 지정교유형 검색">
       </label>
-      <div class="um-control-group" aria-label="필터">
+      <div class="um-control-group" aria-label="보기와 관할">
+        <fieldset class="um-layer-toggles" aria-label="보기 전환">
+          <legend class="um-file-input">보기 전환</legend>
+          <label class="um-layer-toggle"><input type="radio" name="view" value="all" data-view-choice>전체</label>
+          <label class="um-layer-toggle"><input type="radio" name="view" value="schools" data-view-choice>학교</label>
+          <label class="um-layer-toggle"><input type="radio" name="view" value="infra" data-view-choice>교육기관·체험처</label>
+        </fieldset>
         <label>
           <span class="um-note">지원청</span>
           <select id="office-filter" class="um-select">
@@ -750,26 +795,33 @@
             <option value="unassigned">미지정</option>
           </select>
         </label>
-        <label>
-          <span class="um-note">유형</span>
-          <select id="type-filter" class="um-select">
-            <option value="all">전체 유형</option>
-            <option value="headquarters">본청</option>
-            <option value="support-office">교육지원청</option>
-            <option value="direct-agency">직속기관</option>
-            <option value="library">도서관</option>
-            <option value="experience-site">체험학습장</option>
-            <option value="partner">협력기관</option>
-            <option value="school">학교</option>
-            <option value="imported">가져온 행</option>
-          </select>
-        </label>
       </div>
       <div class="um-control-group" aria-label="가져오기와 내보내기">
         <label class="um-file-label" for="import-file" tabindex="0">CSV/XLSX 가져오기</label>
         <input id="import-file" class="um-file-input" type="file" accept=".csv,.tsv,.txt,.xlsx,.xls" tabindex="-1">
         <a class="um-button" href="data/institutions.sample.csv" download>템플릿 다운로드</a>
         <button id="export-data" class="um-button um-button-primary" type="button">데이터 내보내기</button>
+      </div>
+      <div class="um-filter-row">
+        <fieldset id="type-filter" class="um-check-group">
+          <legend class="um-note">유형</legend>
+        </fieldset>
+        <fieldset id="level-filter" class="um-check-group" hidden>
+          <legend class="um-note">학교급</legend>
+        </fieldset>
+        <fieldset id="region-filter" class="um-check-group" hidden>
+          <legend class="um-note">권역</legend>
+        </fieldset>
+        <div id="school-assign-filters" class="um-control-group" hidden>
+          <label>
+            <span class="um-note">지정교유형</span>
+            <select id="designation-filter" class="um-select"></select>
+          </label>
+          <label>
+            <span class="um-note">담당 장학사</span>
+            <select id="supervisor-filter" class="um-select"></select>
+          </label>
+        </div>
       </div>
     </section>
 
@@ -849,6 +901,20 @@
           <ul id="import-failed-list">
             <li>실패 행 없음</li>
           </ul>
+        </section>
+
+        <section id="institution-detail" class="um-panel-section" aria-label="선택한 기관" hidden>
+          <strong id="detail-name"></strong>
+          <p id="detail-summary" class="um-note"></p>
+          <div id="detail-school-fields" class="um-connection-grid" hidden>
+            <label class="um-note" for="detail-supervisor">담당 장학사</label>
+            <input id="detail-supervisor" class="um-input" type="text" maxlength="40" autocomplete="off">
+            <label class="um-note" for="detail-designation">지정교유형</label>
+            <input id="detail-designation" class="um-input" type="text" maxlength="80" list="designation-suggest" autocomplete="off" placeholder="예: 연구학교; 선도학교">
+            <datalist id="designation-suggest"></datalist>
+            <button id="detail-save" class="um-button um-button-primary" type="button">지정 저장</button>
+          </div>
+          <p id="detail-message" class="um-note" aria-live="polite"></p>
         </section>
 
         <section id="institution-list" class="um-list" aria-label="필터링된 기관 목록" tabindex="-1"></section>

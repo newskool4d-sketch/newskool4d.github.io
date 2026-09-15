@@ -1,20 +1,33 @@
-import { INSTITUTION_TYPE_LABELS, OFFICE_LABELS } from "./constants.js";
+import { INSTITUTION_TYPE_CODES, INSTITUTION_TYPE_LABELS, OFFICE_LABELS, REGION_CODES, REGION_LABELS, SCHOOL_LEVEL_CODES, SCHOOL_LEVEL_LABELS } from "./constants.js";
 import { createConnectionManager } from "./connection-layer.js";
 import { buildImportPreviewFromArrayBuffer, buildImportPreviewFromCsv } from "./importer.js";
+import { applyOverrides, DESIGNATION_SUGGESTIONS, distinctOverrideValues, loadOverrides, saveOverride } from "./institution-overrides.js";
 import { exportDataset, filterInstitutions, loadAllInstitutions, loadConnections, mergeImportedInstitutions } from "./institution-repository.js";
 import { createInstitutionMapLayer, filterRowsByMarkerLayers } from "./map-layers.js";
+import { INFRA_TYPE_CODES, parseViewState, presetFor, serializeViewState, toRepositoryFilters } from "./view-state.js";
 
 const MAP_PROVIDER = globalThis.IncheonMapProvider;
 const INCHEON_CENTER = Object.freeze({ lat: 37.4563, lng: 126.7052 });
 
+const CHECK_GROUPS = Object.freeze([
+  { name: "types", selector: "#type-filter", codes: INSTITUTION_TYPE_CODES, labels: INSTITUTION_TYPE_LABELS },
+  { name: "levels", selector: "#level-filter", codes: SCHOOL_LEVEL_CODES, labels: SCHOOL_LEVEL_LABELS },
+  { name: "regions", selector: "#region-filter", codes: REGION_CODES, labels: REGION_LABELS },
+]);
+
 const state = {
   builtIns: [],
+  baseInstitutions: [],
+  baseWarnings: [],
   institutions: [],
   importedInstitutions: [],
   warnings: [],
-  filters: { search: "", office: "all", type: "all" }, markerLayers: { school: true, institution: true, imported: true },
+  view: parseViewState(window.location.search),
+  markerLayers: { school: true, institution: true, imported: true },
   map: null, mapLayer: null, connectionManager: null,
   mapInitRequested: false,
+  fittedOnce: false,
+  selectedId: "",
   visibleRows: [],
 };
 
@@ -101,7 +114,8 @@ const syncMarkerLayer = (rows) => {
     setText("#map-state-text", `레이어 선택 기준 ${layerRows.filter(hasCoordinates).length}개 마커 대기, 좌표 오류 ${layerRows.filter((row) => !hasCoordinates(row)).length}개`);
     return;
   }
-  const result = state.mapLayer.sync(layerRows);
+  const result = state.mapLayer.sync(layerRows, { fit: !state.fittedOnce && !state.view.viewport });
+  state.fittedOnce = true;
   setText("#map-layer-badge", result.clusterer ? `클러스터 ${result.rendered}개` : `마커 ${result.rendered}개`);
   setText("#map-state-text", `마커 ${result.rendered}개 표시, 좌표 오류 ${result.invalidRows.length}개 제외`);
 };
@@ -111,7 +125,7 @@ const rowTemplate = (row) => {
   return `
   <article class="um-row">
     <div class="um-row-main">
-      <strong>${escapeHtml(row.name)}</strong>
+      <button type="button" class="um-row-focus" data-focus-id="${escapeHtml(row.id)}">${escapeHtml(row.name)}</button>
       <span>${escapeHtml(row.address || "주소 없음")}</span>
       ${(row.phone || website) ? `<span class="um-row-contact">
         ${row.phone ? `<a href="tel:${escapeHtml(String(row.phone).replace(/[^0-9+]/g, ""))}">전화 ${escapeHtml(row.phone)}</a>` : ""}
@@ -120,24 +134,95 @@ const rowTemplate = (row) => {
     </div>
     <div class="um-row-meta">
       <span class="um-chip" data-type="${escapeHtml(row.type)}">${escapeHtml(INSTITUTION_TYPE_LABELS[row.type] ?? row.type)}</span>
+      ${SCHOOL_LEVEL_LABELS[row.level] ? `<span class="um-chip">${escapeHtml(SCHOOL_LEVEL_LABELS[row.level])}</span>` : ""}
+      ${REGION_LABELS[row.region] ? `<span class="um-chip">${escapeHtml(REGION_LABELS[row.region])}</span>` : ""}
       <span class="um-chip">${escapeHtml(OFFICE_LABELS[row.office] ?? row.office)}</span>
       ${text(row.designation) ? `<span class="um-chip is-designation">${escapeHtml(row.designation)}</span>` : ""}
+      ${text(row.supervisor) ? `<span class="um-chip">담당 ${escapeHtml(row.supervisor)}</span>` : ""}
       <span class="um-chip ${hasCoordinates(row) ? "is-good" : "is-warn"}">${hasCoordinates(row) ? "좌표 있음" : "지오코딩 대기"}</span>
     </div>
   </article>
 `;
 };
 
+const syncUrl = () => {
+  window.history.replaceState(null, "", `${window.location.pathname}${serializeViewState(state.view)}${window.location.hash}`);
+};
+
+const buildFilterControls = () => {
+  CHECK_GROUPS.forEach(({ name, selector, codes, labels }) => {
+    $(selector)?.insertAdjacentHTML("beforeend", codes.map((code) => (
+      `<label class="um-layer-toggle"><input type="checkbox" data-filter-list="${name}" value="${code}">${escapeHtml(labels[code])}</label>`
+    )).join(""));
+  });
+  const suggest = $("#designation-suggest");
+  if (suggest) suggest.innerHTML = DESIGNATION_SUGGESTIONS.map((value) => `<option value="${escapeHtml(value)}"></option>`).join("");
+};
+
+const fillSelect = (selector, values, selected) => {
+  const select = $(selector);
+  if (!select) return;
+  const options = !selected || values.includes(selected) ? values : [...values, selected];
+  select.innerHTML = `<option value="">전체</option>${options.map((value) => `<option value="${escapeHtml(value)}">${escapeHtml(value)}</option>`).join("")}`;
+  select.value = selected;
+};
+
+const renderFilterControls = () => {
+  const { view } = state;
+  document.querySelectorAll("[data-view-choice]").forEach((input) => { input.checked = input.value === view.view; });
+  document.querySelectorAll("[data-filter-list]").forEach((input) => { input.checked = view[input.dataset.filterList].includes(input.value); });
+  const search = $("#search-input");
+  if (search && document.activeElement !== search) search.value = view.search;
+  const office = $("#office-filter");
+  if (office) office.value = view.office;
+  const includesSchools = view.types.includes("school");
+  $("#level-filter").hidden = !includesSchools;
+  $("#school-assign-filters").hidden = !includesSchools;
+  $("#region-filter").hidden = !view.types.some((type) => INFRA_TYPE_CODES.includes(type));
+  fillSelect("#designation-filter", distinctOverrideValues(state.institutions, "designation"), view.designation);
+  fillSelect("#supervisor-filter", distinctOverrideValues(state.institutions, "supervisor"), view.supervisor);
+};
+
+const selectedInstitution = () => state.institutions.find((row) => row.id === state.selectedId) ?? null;
+
+const renderDetail = (message) => {
+  const host = $("#institution-detail");
+  const row = selectedInstitution();
+  if (!host) return;
+  host.hidden = !row;
+  if (!row) return;
+  setText("#detail-name", row.name);
+  setText("#detail-summary", [INSTITUTION_TYPE_LABELS[row.type], SCHOOL_LEVEL_LABELS[row.level], OFFICE_LABELS[row.office], REGION_LABELS[row.region]].filter(Boolean).join(" · "));
+  const isSchool = row.type === "school";
+  $("#detail-school-fields").hidden = !isSchool;
+  if (host.dataset.renderedId !== row.id) {
+    host.dataset.renderedId = row.id;
+    $("#detail-supervisor").value = text(row.supervisor);
+    $("#detail-designation").value = text(row.designation);
+    setText("#detail-message", "");
+  }
+  if (message !== undefined) setText("#detail-message", message);
+};
+
 const renderRows = () => {
-  const rows = filterInstitutions(state.institutions, state.filters);
+  const rows = filterInstitutions(state.institutions, toRepositoryFilters(state.view));
   renderCounts(rows);
   syncMarkerLayer(rows);
   const list = $("#institution-list");
-  if (!list) return;
-  list.innerHTML = rows.length
-    ? rows.slice(0, 80).map(rowTemplate).join("")
-    : `<div class="um-empty" tabindex="0">조건에 맞는 기관이 없습니다. 검색어와 필터를 조정해 주세요.</div>`;
+  if (list) {
+    list.innerHTML = rows.length
+      ? rows.slice(0, 80).map(rowTemplate).join("")
+      : `<div class="um-empty" tabindex="0">조건에 맞는 기관이 없습니다. 검색어와 필터를 조정해 주세요.</div>`;
+  }
   setText("#list-summary", rows.length > 80 ? `상위 80개 표시 / 전체 ${rows.length}개` : `${rows.length}개 표시`);
+  renderDetail();
+};
+
+const updateView = (patch) => {
+  state.view = { ...state.view, ...patch };
+  renderFilterControls();
+  renderRows();
+  syncUrl();
 };
 
 const renderWarnings = () => {
@@ -149,12 +234,39 @@ const renderWarnings = () => {
 };
 
 const refreshData = ({ institutions, importedInstitutions, warnings }) => {
-  state.institutions = institutions;
+  const overrides = loadOverrides({ storage: localStorage });
+  state.baseInstitutions = institutions;
+  state.baseWarnings = warnings;
+  state.institutions = applyOverrides(institutions, overrides);
   state.importedInstitutions = importedInstitutions;
-  state.warnings = warnings;
+  state.warnings = [...warnings, ...overrides.warnings];
+  renderFilterControls();
   renderRows();
   renderWarnings();
-  state.connectionManager?.refreshInstitutions(institutions);
+  state.connectionManager?.refreshInstitutions(state.institutions);
+};
+
+const focusInstitution = (id) => {
+  state.selectedId = id;
+  if (!selectedInstitution()) return;
+  if (!state.mapLayer) {
+    renderDetail(keyStatus() ? "지도를 불러오는 중입니다. 잠시 후 다시 선택해 주세요." : "지도 연결 후 위치를 표시할 수 있습니다. 목록 정보는 그대로 확인할 수 있습니다.");
+    return;
+  }
+  renderDetail(state.mapLayer.openById(id) ? "지도에서 위치를 표시했습니다." : "좌표가 없거나 마커 레이어가 꺼져 있어 지도에 표시할 수 없습니다.");
+};
+
+const saveAssignments = () => {
+  const row = selectedInstitution();
+  if (!row || row.type !== "school") return;
+  const results = [
+    saveOverride({ storage: localStorage, kind: "supervisor", id: row.id, value: $("#detail-supervisor")?.value }),
+    saveOverride({ storage: localStorage, kind: "designation", id: row.id, value: $("#detail-designation")?.value }),
+  ];
+  const failed = results.find((result) => !result.ok);
+  $("#institution-detail").dataset.renderedId = "";
+  refreshData({ institutions: state.baseInstitutions, importedInstitutions: state.importedInstitutions, warnings: state.baseWarnings });
+  renderDetail(failed ? `저장하지 못했습니다: ${failed.warning.message}` : "담당 장학사와 지정교유형을 이 브라우저에 저장했습니다.");
 };
 
 const readBuiltIns = async () => {
@@ -206,9 +318,10 @@ const initializeMap = async () => {
   try {
     const mapSdk = await MAP_PROVIDER.load({ provider, credential: key });
     const mapNode = $("#map");
+    const viewport = state.view.viewport;
     state.map = new mapSdk.maps.Map(mapNode, {
-      center: new mapSdk.maps.LatLng(INCHEON_CENTER.lat, INCHEON_CENTER.lng),
-      level: 8,
+      center: new mapSdk.maps.LatLng(viewport?.lat ?? INCHEON_CENTER.lat, viewport?.lng ?? INCHEON_CENTER.lng),
+      level: viewport?.level ?? 8,
     });
     state.map.addControl(new mapSdk.maps.ZoomControl(), mapSdk.maps.ControlPosition.RIGHT);
     state.mapLayer = createInstitutionMapLayer({
@@ -221,6 +334,15 @@ const initializeMap = async () => {
     setText("#map-key-badge", `${meta.badge} 지도 준비`);
     syncMarkerLayer(state.visibleRows);
     state.connectionManager?.setMap({ mapSdk, map: state.map });
+    let viewportTimer = 0;
+    mapSdk.maps.event?.addListener?.(state.map, "idle", () => {
+      window.clearTimeout(viewportTimer);
+      viewportTimer = window.setTimeout(() => {
+        const center = state.map.getCenter();
+        state.view = { ...state.view, viewport: { lat: center.getLat(), lng: center.getLng(), level: state.map.getLevel() } };
+        syncUrl();
+      }, 600);
+    });
   } catch (error) {
     state.mapInitRequested = false;
     setText("#map-state-text", `${meta.name}를 불러오지 못했습니다. 연결 정보와 등록 도메인을 확인해 주세요.`);
@@ -228,18 +350,25 @@ const initializeMap = async () => {
 };
 
 const bindEvents = () => {
-  $("#search-input")?.addEventListener("input", (event) => {
-    state.filters.search = event.target.value;
-    renderRows();
+  $("#search-input")?.addEventListener("input", (event) => updateView({ search: event.target.value }));
+  $("#office-filter")?.addEventListener("change", (event) => updateView({ office: event.target.value }));
+  $("#designation-filter")?.addEventListener("change", (event) => updateView({ designation: event.target.value }));
+  $("#supervisor-filter")?.addEventListener("change", (event) => updateView({ supervisor: event.target.value }));
+  document.querySelectorAll("[data-view-choice]").forEach((input) => input.addEventListener("change", () => {
+    state.fittedOnce = false;
+    updateView(presetFor(input.value));
+  }));
+  $(".um-filter-row")?.addEventListener("change", (event) => {
+    const input = event.target.closest("[data-filter-list]");
+    if (!input) return;
+    const name = input.dataset.filterList;
+    updateView({ [name]: [...document.querySelectorAll(`[data-filter-list="${name}"]:checked`)].map((node) => node.value) });
   });
-  $("#office-filter")?.addEventListener("change", (event) => {
-    state.filters.office = event.target.value;
-    renderRows();
+  $("#institution-list")?.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-focus-id]");
+    if (button) focusInstitution(button.dataset.focusId);
   });
-  $("#type-filter")?.addEventListener("change", (event) => {
-    state.filters.type = event.target.value;
-    renderRows();
-  });
+  $("#detail-save")?.addEventListener("click", saveAssignments);
   document.querySelectorAll("[data-marker-layer]").forEach((input) => input.addEventListener("change", (event) => { state.markerLayers[event.target.value] = event.target.checked; renderRows(); }));
   $("#import-file")?.addEventListener("change", (event) => handleImport(event.target.files?.[0]));
   $(".um-file-label")?.addEventListener("keydown", (event) => {
@@ -272,6 +401,8 @@ const bindEvents = () => {
 };
 
 const init = async () => {
+  buildFilterControls();
+  renderFilterControls();
   bindEvents();
   state.connectionManager = createConnectionManager({ storage: localStorage });
   state.connectionManager.bindControls(document);
