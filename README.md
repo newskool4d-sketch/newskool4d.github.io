@@ -22,7 +22,6 @@
 | `js/*.js` | 포함 | `unified-map.html` ES 모듈(공급자 어댑터, 가져오기, 스키마, 도로경로 클라이언트 등) |
 | `data/schools.json`, `data/infra.json`, `data/institutions.json`, `data/connections.json`, `data/schools-directory-metadata.json` | 포함 | 공개 가능한 학교·기관 데이터와 출처 메타데이터 |
 | `data/institutions.sample.csv`, `data/qa/synthetic-1000.csv` | 포함 | 가져오기 템플릿·QA 픽스처(허용 목록, `tools/check-sensitive.mjs` 참조) |
-| `assets/fonts/incheon-edu-himchan-display.woff2` | 포함(라이선스 확인 보류 — `DESIGN.md` §3 참조) | 브랜드 타이틀 표시 서체 |
 | `dist/server/index.js` | Sites worker 배포에만 사용, GitHub Pages에는 무영향 | `npm run build:sites` 생성물 |
 | `business.html`, `private-local-map.html`, `PRIVATE_LOCAL_APP_README.md`, 업무용 CSV | 제외 | 로컬 비공개 앱에서만 사용(`.gitignore`·`tools/check-sensitive.mjs`가 이중 차단) |
 

@@ -56,19 +56,10 @@ export async function buildWorkerSource() {
 
   const assets = Object.fromEntries(entries.map(([route, value]) => [route, value]));
   const types = Object.fromEntries(entries.map(([route, , type]) => [route, type]));
-  const fontBase64 = (await readFile(path.join(root, "assets", "fonts", "incheon-edu-himchan-display.woff2"))).toString("base64");
 
   return `const ASSETS = ${JSON.stringify(assets)};
 const TYPES = ${JSON.stringify(types)};
-const FONT_BASE64 = ${JSON.stringify(fontBase64)};
 const DIRECTIONS_UPSTREAM_TIMEOUT_MS = ${DIRECTIONS_UPSTREAM_TIMEOUT_MS};
-
-function decodeBase64(value) {
-  const binary = atob(value);
-  const bytes = new Uint8Array(binary.length);
-  for (let index = 0; index < binary.length; index += 1) bytes[index] = binary.charCodeAt(index);
-  return bytes;
-}
 
 function jsonResponse(value, status = 200) {
   return new Response(JSON.stringify(value), {
@@ -194,11 +185,6 @@ const worker = {
     const url = new URL(request.url);
     if (url.pathname === "/api/directions") return handleDirections(request, env, url);
     const pathname = url.pathname === "/" ? "/index.html" : url.pathname;
-    if (pathname === "/assets/fonts/incheon-edu-himchan-display.woff2") {
-      return new Response(decodeBase64(FONT_BASE64), {
-        headers: { "content-type": "font/woff2", "cache-control": "public, max-age=31536000, immutable" }
-      });
-    }
     if (Object.hasOwn(ASSETS, pathname)) {
       return new Response(ASSETS[pathname], {
         headers: { "content-type": TYPES[pathname], "cache-control": pathname.endsWith(".html") ? "no-cache" : "public, max-age=300" }
@@ -218,5 +204,5 @@ if (isMainModule) {
   const worker = await buildWorkerSource();
   await mkdir(path.dirname(output), { recursive: true });
   await writeFile(output, worker, "utf8");
-  console.log(`Built ${path.relative(root, output)} with ${textAssets.length} text assets and one font.`);
+  console.log(`Built ${path.relative(root, output)} with ${textAssets.length} text assets.`);
 }

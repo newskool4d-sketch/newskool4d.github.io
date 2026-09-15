@@ -56,7 +56,7 @@ Use a Korean font fallback that works without hosted assets:
 font-family: "Pretendard", "Noto Sans KR", "Apple SD Gothic Neo", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
 ```
 
-Display font (optional): the office typeface 인천교육힘찬 (`Incheon Edu Himchan`) may be used for the brand title and page header only, never for body, filters, chips, or data rows. If adopted for web, serve a subsetted `woff2` build; do not ship the 5.7MB source TTF. Body text always stays on the Pretendard stack. If the subset step is skipped, keep the brand title on Pretendard 700 — the display font is an enhancement, not a dependency.
+Display font (optional, currently removed — 2026-09-15): the office typeface 인천교육힘찬 (`Incheon Edu Himchan`) may be used for the brand title and page header only, never for body, filters, chips, or data rows, **once its distribution license is confirmed**. A subsetted `woff2` build (`assets/fonts/incheon-edu-himchan-display.woff2`, 4,892 bytes) shipped from 2026-07-17 without that confirmation ever being recorded; it and every `@font-face`/`font-family` reference to it were removed on 2026-09-15 pending license verification, and `tools/build-sites-worker.mjs` no longer embeds a font. Do not ship the 5.7MB source TTF even after re-adding it. Body text always stays on the Pretendard stack; the brand title currently renders on Pretendard 700 — the display font is an enhancement, not a dependency, and must not be re-added without a recorded license check.
 
 Typography tokens:
 

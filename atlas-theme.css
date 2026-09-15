@@ -1,11 +1,3 @@
-@font-face {
-  font-family: "Incheon Edu Himchan";
-  src: url("assets/fonts/incheon-edu-himchan-display.woff2") format("woff2");
-  font-display: swap;
-  font-style: normal;
-  font-weight: 700;
-}
-
 :root {
   --atlas-navy: #071c35;
   --atlas-blue-700: #004f92;
@@ -108,7 +100,7 @@ textarea { transition: color 140ms ease, background-color 140ms ease, border-col
 
 .gnb-title {
   color: var(--atlas-navy) !important;
-  font-family: "Incheon Edu Himchan", "Pretendard", "Noto Sans KR", sans-serif !important;
+  font-family: "Pretendard", "Noto Sans KR", sans-serif !important;
   font-size: 20px !important;
 }
 
@@ -186,7 +178,7 @@ textarea { transition: color 140ms ease, background-color 140ms ease, border-col
   z-index: 1;
   max-width: 18ch;
   color: var(--atlas-navy) !important;
-  font-family: "Incheon Edu Himchan", "Pretendard", "Noto Sans KR", sans-serif !important;
+  font-family: "Pretendard", "Noto Sans KR", sans-serif !important;
   font-size: clamp(24px, 2.2vw, 31px) !important;
   line-height: 1.16 !important;
   letter-spacing: -.02em;
@@ -364,7 +356,7 @@ button:hover { background: var(--atlas-blue-700) !important; transform: translat
   box-shadow: var(--atlas-shadow) !important;
 }
 .map-loader-card h3,
-.key-modal-content h3 { margin: 12px 0 10px !important; color: var(--atlas-navy) !important; font-family: "Incheon Edu Himchan", "Pretendard", sans-serif; font-size: 26px !important; word-break: keep-all; }
+.key-modal-content h3 { margin: 12px 0 10px !important; color: var(--atlas-navy) !important; font-family: "Pretendard", sans-serif; font-size: 26px !important; word-break: keep-all; }
 .map-loader-card p,
 .key-modal-content p,
 .um-key-card p { word-break: keep-all; }
@@ -518,7 +510,7 @@ button:hover { background: var(--atlas-blue-700) !important; transform: translat
   background: rgba(255,255,255,.95) !important;
   box-shadow: var(--atlas-shadow) !important;
 }
-.um-key-card h2 { margin-top: 12px !important; color: var(--atlas-navy) !important; font-family: "Incheon Edu Himchan", "Pretendard", sans-serif; font-size: clamp(24px, 3vw, 34px) !important; line-height: 1.18 !important; word-break: keep-all; }
+.um-key-card h2 { margin-top: 12px !important; color: var(--atlas-navy) !important; font-family: "Pretendard", sans-serif; font-size: clamp(24px, 3vw, 34px) !important; line-height: 1.18 !important; word-break: keep-all; }
 .um-key-form {
   grid-template-columns: minmax(0, .82fr) minmax(0, 1.18fr) !important;
   align-items: end !important;
@@ -582,7 +574,7 @@ button:hover { background: var(--atlas-blue-700) !important; transform: translat
 h1 {
   max-width: 10.5ch !important;
   color: var(--atlas-navy) !important;
-  font-family: "Incheon Edu Himchan", "Pretendard", "Noto Sans KR", sans-serif !important;
+  font-family: "Pretendard", "Noto Sans KR", sans-serif !important;
   font-size: clamp(48px, 5.4vw, 76px) !important;
   line-height: 1.02 !important;
   letter-spacing: -.035em !important;
