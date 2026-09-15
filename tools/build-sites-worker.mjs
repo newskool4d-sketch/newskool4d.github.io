@@ -1,6 +1,6 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const output = path.join(root, "dist", "server", "index.js");
@@ -33,6 +33,8 @@ const textAssets = [
   "js/unified-map-app.js",
 ];
 
+const DIRECTIONS_UPSTREAM_TIMEOUT_MS = 8000;
+
 const typeFor = (file) => {
   if (file.endsWith(".html")) return "text/html; charset=utf-8";
   if (file.endsWith(".css")) return "text/css; charset=utf-8";
@@ -42,18 +44,24 @@ const typeFor = (file) => {
   return "text/plain; charset=utf-8";
 };
 
-const entries = await Promise.all(textAssets.map(async (file) => {
-  const value = await readFile(path.join(root, file), "utf8");
-  return [`/${file.replaceAll("\\", "/")}`, value, typeFor(file)];
-}));
+// Builds the worker source as a string, without touching the filesystem beyond
+// reading the source assets. Exported so tests can assert dist/server/index.js
+// stays in sync with sources without the act of testing silently rebuilding
+// (and thereby masking) a stale committed artifact.
+export async function buildWorkerSource() {
+  const entries = await Promise.all(textAssets.map(async (file) => {
+    const value = await readFile(path.join(root, file), "utf8");
+    return [`/${file.replaceAll("\\", "/")}`, value, typeFor(file)];
+  }));
 
-const assets = Object.fromEntries(entries.map(([route, value]) => [route, value]));
-const types = Object.fromEntries(entries.map(([route, , type]) => [route, type]));
-const fontBase64 = (await readFile(path.join(root, "assets", "fonts", "incheon-edu-himchan-display.woff2"))).toString("base64");
+  const assets = Object.fromEntries(entries.map(([route, value]) => [route, value]));
+  const types = Object.fromEntries(entries.map(([route, , type]) => [route, type]));
+  const fontBase64 = (await readFile(path.join(root, "assets", "fonts", "incheon-edu-himchan-display.woff2"))).toString("base64");
 
-const worker = `const ASSETS = ${JSON.stringify(assets)};
+  return `const ASSETS = ${JSON.stringify(assets)};
 const TYPES = ${JSON.stringify(types)};
 const FONT_BASE64 = ${JSON.stringify(fontBase64)};
+const DIRECTIONS_UPSTREAM_TIMEOUT_MS = ${DIRECTIONS_UPSTREAM_TIMEOUT_MS};
 
 function decodeBase64(value) {
   const binary = atob(value);
@@ -149,7 +157,7 @@ async function handleDirections(request, env, url) {
         "x-ncp-apigw-api-key-id": clientId,
         "x-ncp-apigw-api-key": clientSecret
       },
-      signal: typeof AbortSignal.timeout === "function" ? AbortSignal.timeout(8000) : undefined
+      signal: typeof AbortSignal.timeout === "function" ? AbortSignal.timeout(DIRECTIONS_UPSTREAM_TIMEOUT_MS) : undefined
     });
   } catch {
     return jsonResponse({ code: "directions_upstream_unavailable", message: "네이버 도로경로 서비스에 연결하지 못했습니다." }, 502);
@@ -202,7 +210,13 @@ const worker = {
 
 export default worker;
 `;
+}
 
-await mkdir(path.dirname(output), { recursive: true });
-await writeFile(output, worker, "utf8");
-console.log(`Built ${path.relative(root, output)} with ${textAssets.length} text assets and one font.`);
+const isMainModule = process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href;
+
+if (isMainModule) {
+  const worker = await buildWorkerSource();
+  await mkdir(path.dirname(output), { recursive: true });
+  await writeFile(output, worker, "utf8");
+  console.log(`Built ${path.relative(root, output)} with ${textAssets.length} text assets and one font.`);
+}

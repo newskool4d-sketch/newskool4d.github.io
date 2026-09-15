@@ -1,9 +1,27 @@
 import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import test from "node:test";
+import { buildWorkerSource } from "../tools/build-sites-worker.mjs";
 
-await import(`../tools/build-sites-worker.mjs?test=${Date.now()}`);
+// Deliberately does NOT import build-sites-worker.mjs's CLI write path here —
+// only dist/server/index.js, exactly as committed, so a stale bundle fails
+// this file's own tests instead of being silently rebuilt and masked
+// (2026-07-17 review M1).
 const { default: worker } = await import(`../dist/server/index.js?test=${Date.now()}`);
 const alwaysAllowLimiter = { limit: async () => ({ success: true }) };
+
+test("dist/server/index.js is byte-in-sync with its source assets", async () => {
+  const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+  const committed = await readFile(path.join(root, "dist", "server", "index.js"), "utf8");
+  const rebuilt = await buildWorkerSource();
+  assert.equal(
+    committed,
+    rebuilt,
+    "dist/server/index.js is stale — run `npm run build:sites` and commit the result",
+  );
+});
 
 test("Sites worker keeps Directions disabled until both server credentials exist", async () => {
   const response = await worker.fetch(new Request(
@@ -54,6 +72,37 @@ test("Sites worker proxies Naver Directions and exposes only a sanitized road ro
     assert.equal(payload.distanceMeters, 4860);
     assert.equal(payload.durationMillis, 720000);
     assert.equal(JSON.stringify(payload).includes("server-secret"), false);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("Sites worker attaches an 8-second upstream timeout signal and converts abort to a clean 502", async () => {
+  const originalFetch = globalThis.fetch;
+  const calls = [];
+  globalThis.fetch = async (url, options) => {
+    calls.push({ url: String(url), options });
+    // Simulates what a real AbortSignal.timeout(8000) firing looks like to
+    // the caller: fetch rejects. This proves handleDirections' try/catch
+    // converts an aborted upstream call into a stable 502, not a 5xx crash
+    // or an unhandled rejection (2026-07-17 review M2).
+    throw new DOMException("The operation was aborted.", "AbortError");
+  };
+  try {
+    const response = await worker.fetch(new Request(
+      "https://example.test/api/directions?start=126.703048,37.4562754&goal=126.7400125,37.4485429",
+    ), {
+      NAVER_DIRECTIONS_CLIENT_ID: "server-id",
+      NAVER_DIRECTIONS_CLIENT_SECRET: "server-secret",
+      DIRECTIONS_RATE_LIMITER: alwaysAllowLimiter,
+    });
+    assert.equal(calls.length, 1);
+    assert.ok(
+      calls[0].options.signal instanceof AbortSignal,
+      "upstream fetch must carry an AbortSignal so a hung Naver Directions call cannot block the worker indefinitely",
+    );
+    assert.equal(response.status, 502);
+    assert.equal((await response.json()).code, "directions_upstream_unavailable");
   } finally {
     globalThis.fetch = originalFetch;
   }

@@ -3,7 +3,7 @@ import { createHash } from "node:crypto";
 import test from "node:test";
 import { readFile } from "node:fs/promises";
 
-// data/schools.json은 2026.4.1.자 인천 전체 960개교 + 사전계산 좌표가 정본이다.
+// data/schools.json은 2026.4.1.자 인천 전체 967개교 + 사전계산 좌표가 정본이다.
 // 과거 커밋 0f30b4c가 이 파일을 20개 샘플(좌표 없음)로 되돌려 위치 오류가 재발했다 — 그 회귀를 막는다.
 
 const INCHEON_BOUNDS = Object.freeze({ latMin: 37.1, latMax: 37.99, lngMin: 124.5, lngMax: 126.85 });
