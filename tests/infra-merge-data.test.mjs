@@ -17,7 +17,11 @@ const expectedType = (place) => (place.category === "office"
   ? (place.id === "office-main" ? "headquarters" : "support-office")
   : TYPE_FOR_CATEGORY[place.category]);
 
-test("every infra.json record is present in institutions.json with mapped type and region", async () => {
+const KNOWN_PHONE_DIFFERENCES = Object.freeze({
+  "office-north": { infra: "032-524-9631~2", institutions: "032-524-9631" },
+});
+
+test("every infra.json record matches institutions.json in type, region, location, and contacts", async () => {
   const infra = await readJson("../data/infra.json");
   const byId = new Map((await readJson("../data/institutions.json")).map((row) => [row.id, row]));
   for (const place of infra) {
@@ -26,6 +30,16 @@ test("every infra.json record is present in institutions.json with mapped type a
     assert.equal(row.name, place.name, place.id);
     assert.equal(row.type, expectedType(place), place.id);
     assert.equal(row.region, place.region, place.id);
+    assert.equal(row.address, place.address, place.id);
+    assert.equal(row.url, place.url, place.id);
+    assert.equal(row.lat, place.lat, place.id);
+    assert.equal(row.lng, place.lng, place.id);
+    const knownPhone = KNOWN_PHONE_DIFFERENCES[place.id];
+    if (knownPhone) {
+      assert.deepEqual({ infra: place.tel, institutions: row.phone }, knownPhone, place.id);
+    } else {
+      assert.equal(row.phone, place.tel, place.id);
+    }
   }
 });
 
