@@ -172,6 +172,8 @@
 
 **게이트**: R2 기록 존재(성공 또는 동결 결정).
 
+**2단계 진행 현황 (2026-09-15)**: R4 완료(`js/connection-layer.js`·`js/institution-schema.js`의 저장 경로 정규화 중복을 `js/directions-service.js`의 `hasStoredRouteData`·`extractStoredRouteFields`로 통합, 63/63 테스트 유지, 에러 형태 차이는 보존). R3는 **동결이 아니라 문서 정정**으로 처리 — Pages 정본에서 도로경로가 안 되는 것은 확인된 사실(0단계에서 실측)이지만, Sites worker 자체가 분산 요청 제한을 지원하는지는 **미확인**(반박 아님)이므로 "동결"이라고 쓰지 않음. `DESIGN.md` §1·§9에 이 구분을 명시. **R1·R2는 열린 채로 남음** — `git ls-remote sites`가 이 세션에서 타임아웃(원격 자체가 이 환경에서 접근 불가, 호스팅의 `limit({key})` 지원 여부와는 무관). `sites` 원격에 접근 가능한 세션 또는 사용자가 직접 이어서 진행 가능. `sites`로는 push하지 않음(origin 승인과 별개 사안).
+
 ### 3단계 — 단일화·디자인 완결 (1~2개월)
 
 | 과제 | 작업 | 대상 | 완료 기준 |
