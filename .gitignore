@@ -13,4 +13,7 @@ ui-ux-ai-slop-audit.md
 .omo/
 .tmp/
 .playwright-mcp/
+.playwright-cli/
+output/
 node_modules/
+*.bak
