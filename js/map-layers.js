@@ -1,4 +1,4 @@
-import { INSTITUTION_TYPE_LABELS, OFFICE_LABELS } from "./constants.js";
+import { INSTITUTION_TYPE_LABELS, OFFICE_LABELS, SCHOOL_LEVEL_LABELS } from "./constants.js";
 
 const CATEGORY_META = Object.freeze({
   headquarters: { label: "본청", className: "type-headquarters", color: "#746019" },
@@ -19,6 +19,17 @@ const escapeHtml = (value) => text(value).replace(/[&<>"']/g, (char) => ({
   "\"": "&quot;",
   "'": "&#39;",
 }[char]));
+
+const safeHttpUrl = (value) => {
+  try {
+    const url = new URL(text(value));
+    return url.protocol === "http:" || url.protocol === "https:" ? url.href : "";
+  } catch {
+    return "";
+  }
+};
+
+const telHref = (phone) => String(phone).replace(/[^0-9+]/g, "");
 
 const finiteCoordinate = (value) => {
   const number = Number(value);
@@ -48,7 +59,12 @@ const customFieldRows = (row) => Object.entries(row.customFields ?? {})
 const popupHtml = (row) => {
   const category = categoryFor(row);
   const office = OFFICE_LABELS[row.office] ?? row.office ?? "미지정";
-  const level = text(row.level);
+  const level = SCHOOL_LEVEL_LABELS[row.level] ?? text(row.level);
+  const phone = text(row.phone);
+  const website = safeHttpUrl(row.website || row.url);
+  const description = text(row.description);
+  const designation = text(row.designation);
+  const supervisor = text(row.supervisor);
   const fields = customFieldRows(row);
   return `
     <section class="um-popup" data-popup-id="${escapeHtml(row.id)}">
@@ -59,6 +75,13 @@ const popupHtml = (row) => {
         ${level ? `<span class="um-popup-chip">${escapeHtml(level)}</span>` : ""}
       </div>
       <p>${escapeHtml(row.address || "주소 없음")}</p>
+      ${description ? `<p>${escapeHtml(description)}</p>` : ""}
+      ${(phone || website) ? `<p class="um-popup-contact">
+        ${phone ? `<a href="tel:${escapeHtml(telHref(phone))}">전화 ${escapeHtml(phone)}</a>` : ""}
+        ${website ? `<a href="${escapeHtml(website)}" target="_blank" rel="noopener noreferrer">홈페이지</a>` : ""}
+      </p>` : ""}
+      ${designation ? `<p>지정교유형: ${escapeHtml(designation)}</p>` : ""}
+      ${supervisor ? `<p>담당 장학사: ${escapeHtml(supervisor)}</p>` : ""}
       ${fields ? `<dl>${fields}</dl>` : ""}
     </section>
   `;
@@ -143,6 +166,7 @@ export const createInstitutionMapLayer = ({ mapSdk, map, elements = {} }) => {
     if (!marker || !row) return false;
     infoWindow.setContent(popupHtml(row));
     infoWindow.open(map, marker);
+    if (typeof map.panTo === "function") map.panTo(marker.getPosition());
     return true;
   };
 

@@ -237,3 +237,48 @@ test("classifies marker layer toggles for schools institutions and imported rows
   assert.equal(markerLayerKeyFor(rows[0]), "school");
   assert.deepEqual(visible.map((row) => row.id), ["school", "imported"]);
 });
+
+test("popup shows contact, description, designation, and supervisor while rejecting unsafe links", () => {
+  const html = buildInstitutionPopupHtml({
+    id: "popup-school",
+    name: "인천청라초등학교",
+    type: "school",
+    office: "west",
+    level: "elem",
+    address: "인천광역시 서구 청라라임로 105",
+    phone: "032-123-4567",
+    website: "javascript:alert(1)",
+    description: "<b>설명</b>",
+    designation: "연구학교",
+    supervisor: "김장학",
+  });
+
+  assert.match(html, /href="tel:0321234567"/);
+  assert.equal(html.includes("javascript:"), false);
+  assert.equal(html.includes("홈페이지"), false);
+  assert.match(html, /&lt;b&gt;설명&lt;\/b&gt;/);
+  assert.match(html, /지정교유형: 연구학교/);
+  assert.match(html, /담당 장학사: 김장학/);
+  assert.match(html, /초등학교/);
+  assert.match(
+    buildInstitutionPopupHtml({ id: "popup-library", name: "도서관", type: "library", url: "https://lib.ice.go.kr/x" }),
+    /href="https:\/\/lib\.ice\.go\.kr\/x" target="_blank" rel="noopener noreferrer"/,
+  );
+});
+
+test("openById pans the map to the selected marker and reports unknown ids", () => {
+  const { mapSdk, created } = makeFakeKakao({ clusterer: false });
+  const map = {
+    ...makeMap(),
+    panned: null,
+    panTo(position) {
+      this.panned = position;
+    },
+  };
+  const layer = createInstitutionMapLayer({ mapSdk, map });
+  layer.sync(makeRows(2));
+
+  assert.equal(layer.openById("synthetic-map-layer-2"), true);
+  assert.equal(map.panned, created.markers[1].options.position);
+  assert.equal(layer.openById("missing"), false);
+});
