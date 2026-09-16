@@ -330,39 +330,75 @@ S15·I12(목록 행 클릭 시 지도 무반응)는 원인이 동일하다. 서�
 
 색만으로 의미를 전달하는 요소는 0건이다.
 
-### 11-3. 터치 타깃 44px(`<768px`) — 결함 1건 발견·수정
+### 11-3. 터치 타깃 44px(`<768px`) — 결함 2종·5개 발견·수정
 
-판정은 **원본 대조**(요소에 매칭되는 `min-height` 규칙 전수 열거)로 했다. 브라우저 계산값은 11-4의 사유로 근거에서 제외했다.
+375×812에서 전 요소를 실측한 뒤 원본과 대조했다. 두 번에 걸쳐 확인했고, **1차 판정은 틀렸다**(경위는 11-4).
 
-| 요소 | 적용 규칙 | 결과 |
-|---|---|---|
-| `.um-button`·`.um-link-button`·`.um-file-label`·`.um-search`·`.um-select`·`.um-input`·`.um-layer-toggle` | `atlas-theme.css` 767px 블록 `min-height: 44px !important` | 충족 |
-| `.gnb-logo`·`.um-brand` | 같은 블록 `min-height: 44px !important` | 충족 |
-| `.um-row-focus`(목록 기관명) | **해당 없음** — `atlas-theme.css`의 `button { min-height: 40px }`만 매칭 | **40px, 미달** |
+| 요소 | 개수 | 매칭된 최우선 규칙 | 결과 |
+|---|---|---|---|
+| `.um-button`·`.um-link-button`·`.um-file-label`·`.um-layer-toggle`·`.gnb-logo`·`.um-brand` | — | 767px 블록 `min-height: 44px !important` (0,1,0) | 44px 충족 |
+| `.um-select`(`<select>`) | 8 | 위와 동일 — 경쟁 규칙 `select`가 (0,0,1)이라 패배 | 44px 충족 |
+| 체크박스·라디오 | 26 | 감싸는 `<label class="um-layer-toggle">`가 타깃 | 44px 충족 |
+| 파일 입력 | 2 | 시각적으로 숨김, `.um-file-label`이 타깃 | 44px 충족 |
+| `.um-row-focus`(목록 기관명) | 1 | **해당 없음** — `atlas-theme.css`의 `button { min-height: 40px }`만 매칭 | **40px 미달** |
+| `.um-search`(`<input type="search">`) | 1 | **`atlas-theme.css:99-103`의 `input[type="search"]`(0,1,1) `!important`** | **42px 미달** |
+| `.um-input`(`<input type="text">`) | 4 | **같은 규칙의 `input[type="text"]`(0,1,1) `!important`** | **42px 미달** |
 
-`.um-row-focus`는 목록에서 지도로 이동하는 주 상호작용인데 44px 목록에서 빠져 있었다. `unified-map.html`의 767px 블록에 규칙을 추가해 해결했다(클래스 선택자라 `button` 요소 선택자보다 특이성이 높아 `!important` 없이 이긴다 — `atlas-theme.css` `!important` 건수는 240건 그대로).
+원인은 **선택자 특이성**이다. `atlas-theme.css:99-103`의 데스크톱 규칙
 
 ```css
-.um-row-focus { display: inline-flex; align-items: center; min-height: 44px; }
+input[type="text"], input[type="search"], select, textarea { min-height: 42px !important; }
 ```
 
-### 11-4. 계측 도구 결함 — 브라우저 계산값을 근거에서 제외
+에서 `<input>`이 매칭되는 선택자는 (0,1,1)이라 767px 블록의 `.um-search`·`.um-input`(0,1,0)을 **특이성으로 이긴다**(둘 다 `!important`라 순서로 가려지지 않음). 반면 `<select>`가 매칭되는 선택자는 `select`(0,0,1)이라 `.um-select`에 진다. 같은 목록에 있는 두 요소가 다른 값을 갖는 이유가 이것이다.
 
-375×812 에뮬레이션 창에서 얻은 계산값이 CSS 표준으로 설명되지 않아, 개입 실험 3건으로 **도구 결함**으로 판정하고 해당 수치를 전부 폐기했다.
+수정 2건:
 
-| 실험 | 기대 | 실제 |
+| 파일 | 변경 | `!important` 영향 |
 |---|---|---|
-| `!important` 999px를 새 `<style>`로 주입 | 계산값 999px | 620px 불변 |
-| 전역 규칙의 `min-height`를 CSSOM에서 제거 | 767px 블록 값(760px)으로 전환 | 620px 불변 |
-| `.um-search`·`.um-select` 비교(매칭 규칙 집합 동일) | 동일 값 | 42px vs 44px로 분기 |
+| `unified-map.html` 767px 블록 | `.um-row-focus { display:inline-flex; align-items:center; min-height:44px; }` 추가. 클래스(0,1,0)가 `button`(0,0,1)을 이겨 `!important` 불필요 | 없음 |
+| `atlas-theme.css` 767px 블록 | 기존 44px 규칙의 **선택자 목록에만** `input[type="text"]`·`input[type="search"]`·`textarea` 추가. 데스크톱 규칙과 같은 (0,1,1)이지만 파일 뒤쪽이라 순서로 이긴다 | **없음**(선언 미변경, 240건 유지) |
 
-특히 세 번째는 동일한 규칙 4개가 같은 순서로 매칭되는 두 요소가 다른 값을 갖는 경우로, 정상 엔진에서 불가능하다. 이에 따라 이 세션 중간에 "실측이 코드를 뒤집었다"며 보고한 `.um-map-area` 620px·`.um-search` 42px은 **모두 무효**이며, 그에 근거해 잠시 내렸던 "`min-height: 760px !important`는 무효 규칙" 판정도 **철회**했다(해당 편집은 되돌림). 교훈: 단일 계측 창의 계산값은 원본 대조 없이 근거로 쓰지 않는다.
+`textarea`는 현재 0개지만, 데스크톱 규칙이 포함하고 있어 같은 형태를 유지했다(추가 시 동일 결함이 재발하지 않도록).
+
+**적용 범위 확인**: 추가한 것이 클래스가 아니라 요소 선택자이므로 `atlas-theme.css`를 함께 읽는 `index.html`에도 적용된다. 다만 `index.html`에는 `<input>`·`<select>`·`<textarea>`가 **0개**여서 영향받는 요소가 없다(grep 실측). 영향 범위는 `unified-map.html`의 위 5개로 한정된다.
+
+### 11-4. 1차 판정이 틀린 경위 — 기록
+
+이 절은 되풀이하지 않기 위한 기록이다. 1차 실측에서 설명되지 않는 값 2개를 만났고, 둘을 같은 원인으로 묶어 **"계측 도구 결함"으로 오판**했다.
+
+| 관측 | 1차 판정 | 최종 판정 |
+|---|---|---|
+| `.um-map-area`가 620px(767px 블록은 760px) | 도구 결함 | **재현되지 않음 — 원인 미확정**. 새 창에서 재측정하니 원본과 일치하는 760px. 620px이 정지된 값이었는지 그 세션 로드 고유의 문제였는지는 확인하지 못했다(작동하는 계측기로 620px을 재현해 보지 않았으므로 "도구 결함"으로 단정하지 않는다) |
+| `.um-search` 42px인데 `.um-select` 44px | 도구 결함(같은 규칙인데 분기 = 불가능) | **측정이 옳았음** — 11-3의 특이성 차이로 완전히 설명됨 |
+| 새 `<style>`로 `!important` 999px 주입 무반응 | 엔진 정지의 증거 | **판정 근거로 쓸 수 없음** — 정상 측정이 나오는 상태에서도 동일하게 무반응(이 창이 주입 스타일을 차단하는 것으로 보임) |
+
+오판의 실질적 원인은 도구가 아니라 **"매칭 규칙 집합이 같으면 계산값도 같다"는 잘못된 전제**였다. 콤마 목록에서는 선택자마다 특이성이 따로 계산되므로, 같은 규칙에 매칭되더라도 요소별 승자가 다를 수 있다. 이 전제를 검증하지 않은 채 "정상 엔진에서 불가능"이라고 단정했고, 그 결론으로 정상 규칙(`min-height: 760px !important`)을 한 번 제거했다가 되돌렸다.
+
+재발 방지: 계산값이 예상과 다르면 ① 창을 새로 열어 재측정하고 ② **요소별로 매칭 선택자의 특이성을 직접 계산**한 뒤에 도구를 의심한다. 주입 프로브는 이 창에서 신뢰할 수 없으므로 계측기 검증용으로 쓰지 않는다. 레이아웃 값(`getBoundingClientRect`·`offsetHeight`)은 폭 3000px 요소 주입에 정상 반응하므로 검증 가능하다(11-6에서 사용).
 
 ### 11-5. 잔여 — 이월
 
 | 항목 | 상태 | 사유 |
 |---|---|---|
-| 200% 확대 시 가로 스크롤 없음 | **미검증** | 신뢰 가능한 실 브라우저 확인 필요 |
+| 200% 확대 시 가로 스크롤 없음 | **충족** | 11-6에서 실측 완료 |
 | 모바일 `.um-map-area` 760px | 결함 아님 | DESIGN 하한 `48svh`(812px 화면 기준 390px)를 충족. 다만 화면의 93%를 지도가 차지해 목록이 첫 화면 밖으로 밀린다. 축소는 접근성 수정이 아니라 **디자인 변경**이라 사용자 판단으로 이월 |
 | `atlas-theme.css` 죽은 규칙 잔존 | 이월 | `!important`가 없어 §10-3 제거 대상에서 빠진 `.gnb-logo`·`.workflow-panel`·`.workflow-step-card`·`.provider-modal-actions` 등. T8-1 잔여 패스에서 처리 |
-| S14(§7 이월분) | 이월 | 위 200% 확대 검증과 함께 판정 |
+| S14(§7 이월분) | **해소** | 이월 사유였던 "두 시트 간 `.um-map-area` 높이값 충돌 소지"(§7)는 판정 완료 — 767px 블록의 `min-height: 760px !important`가 전역 `620px !important`를 **파일 순서로** 이기고, 375×812 실측도 760px로 일치. 반응형 자체는 11-6에서 가로 넘침 0건 |
+
+### 11-6. 확대 시 가로 스크롤 — 4개 조건 전부 충족
+
+DESIGN.md §9의 "200% 확대 시 가로 스크롤 없음"은 브라우저 확대 200% ≡ **CSS 뷰포트 폭 절반**(1280px 기준 640px)이므로 폭 에뮬레이션으로 등가 검증했다. 320px는 WCAG 2.1 SC 1.4.10(리플로) 기준의 참고치다.
+
+**계측기 검증 선행**: 매 측정마다 폭 3000px 요소를 주입해 `scrollWidth`가 3000으로 반응하고 제거 후 원값으로 복귀하는지 확인했다(4회 모두 통과). 11-4의 경위를 반복하지 않기 위한 절차다.
+
+| 화면 | 폭 | `scrollWidth` / `clientWidth` | 우측 경계 초과 요소 | 판정 |
+|---|---|---|---|---|
+| `unified-map.html` | 640px (200%) | 640 / 640 | **0건** | 충족 |
+| `index.html` | 640px (200%) | 640 / 640 | **0건** | 충족 |
+| `unified-map.html` | 320px (400%) | 320 / 320 | **0건** | 충족 |
+| `index.html` | 320px (400%) | 320 / 320 | **0건** | 충족 |
+
+측정 시 `unified-map.html`은 목록 160행이 렌더링된 상태(요소 3,193개)였다.
+
+**주의 — `scrollWidth` 단독 판정 금지**: `unified-map.html:57`에 전역 `body { overflow-x: hidden; }`이 있어, 내용이 넘쳐도 `scrollWidth`는 항상 `clientWidth`와 같아진다. 따라서 이 표의 실제 근거는 `scrollWidth`가 아니라 **전 요소의 `getBoundingClientRect().right` 스캔**이며(클리핑의 영향을 받지 않음), 네 조건 모두 초과 요소 0건이다. 이 저장소에서 가로 넘침 회귀를 점검할 때는 반드시 rect 스캔을 쓸 것.

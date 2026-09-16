@@ -441,7 +441,10 @@ h1 {
   .um-search,
   .um-select,
   .um-input,
-  .um-layer-toggle { min-height: 44px !important; }
+  .um-layer-toggle,
+  input[type="text"],
+  input[type="search"],
+  textarea { min-height: 44px !important; }
   .site-shell { width: min(100% - 24px, 760px) !important; padding-top: 12px !important; }
   .site-header { align-items: stretch !important; padding: 10px !important; }
   .site-actions { overflow-x: auto; }
