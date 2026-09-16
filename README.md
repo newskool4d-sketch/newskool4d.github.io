@@ -18,7 +18,7 @@
 | 파일·폴더 | 공개 배포 여부 | 용도 |
 | --- | --- | --- |
 | `index.html`, `unified-map.html` | 포함 | 공개 지도 화면 2개 |
-| `schools.html`, `infrastructure.html` | 포함 | 구형 화면(2026-09-15 T11부터 리다이렉트 스텁 — `unified-map.html?view=schools`/`?view=infra`로 즉시 이동, 1배포 주기 뒤 제거 예정) |
+| `schools.html`, `infrastructure.html` | 포함 | 리다이렉트 스텁 — `unified-map.html?view=schools`/`?view=infra`로 즉시 이동. 과거 공문·안내자료에 남아 있을 수 있는 주소를 살려 두기 위해 **영구 존치**한다(2026-09-16 결정, 삭제 시 영구 404) |
 | `shared.css`, `atlas-theme.css` | 포함 | 공개 지도 공통 디자인·지도 SDK 로더 |
 | `shared.js` | 포함(공개 화면에서는 미사용) | 과거 `schools.html`·`infrastructure.html`의 GNB 렌더링 함수. 스텁 전환으로 두 파일 모두 더는 로드하지 않으며, 로컬 비공개 도구에서만 계속 사용 |
 | `js/*.js` | 포함 | `unified-map.html` ES 모듈(공급자 어댑터, 가져오기, 스키마, 도로경로 클라이언트 등) |
